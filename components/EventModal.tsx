@@ -25,6 +25,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
   
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+  const [isUserTyping, setIsUserTyping] = useState(false);
   const debounceTimeout = useRef<number | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -45,9 +46,15 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
     }
     setSuggestions([]);
     setIsSuggestionsOpen(false);
+    setIsUserTyping(false); // Reset typing state when modal opens
   }, [event, selectedDate]);
 
   useEffect(() => {
+    // Only fetch suggestions if user is actively typing
+    if (!isUserTyping) {
+      return;
+    }
+
     // Don't fetch if location is empty or too short
     if (location.trim() === '' || location.trim().length < 3) {
       setSuggestions([]);
@@ -86,7 +93,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
         clearTimeout(debounceTimeout.current);
       }
     };
-  }, [location]);
+  }, [location, isUserTyping]);
 
   // Handle clicks outside the suggestions box
   useEffect(() => {
@@ -150,6 +157,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
     setLocation(suggestion.properties.formatted);
     setSuggestions([]);
     setIsSuggestionsOpen(false);
+    setIsUserTyping(false);
   };
   
   return (
@@ -197,13 +205,17 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <LocationMarkerIcon className="h-5 w-5 text-slate-500" />
                  </div>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   id="location"
-                  value={location} 
-                  onChange={e => setLocation(e.target.value)} 
+                  value={location}
+                  onChange={e => {
+                    setLocation(e.target.value);
+                    setIsUserTyping(true);
+                  }}
+                  onFocus={() => setIsUserTyping(true)}
                   autoComplete="off"
-                  required 
+                  required
                   className="w-full pl-10 pr-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
                 />
                  {isSuggestionsOpen && suggestions.length > 0 && (
