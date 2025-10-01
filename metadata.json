@@ -1,0 +1,5 @@
+{
+  "name": "Shein Event Calendar",
+  "description": "A collaborative calendar application for groups of friends to plan and track their events. Users can add multi-day events with details like location and descriptions.",
+  "requestFramePermissions": []
+}
