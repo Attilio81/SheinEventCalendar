@@ -306,23 +306,38 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
             </div>
              <div ref={wrapperRef}>
               <label htmlFor="location" className="block text-sm font-medium text-slate-400 mb-1">Luogo / Indirizzo</label>
-               <div className="relative">
-                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <LocationMarkerIcon className="h-5 w-5 text-slate-500" />
+               <div className="relative flex gap-2">
+                 <div className="relative flex-1">
+                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <LocationMarkerIcon className="h-5 w-5 text-slate-500" />
+                   </div>
+                  <input
+                    type="text"
+                    id="location"
+                    value={location}
+                    onChange={e => {
+                      setLocation(e.target.value);
+                      setIsUserTyping(true);
+                    }}
+                    onFocus={() => setIsUserTyping(true)}
+                    autoComplete="off"
+                    required
+                    className="w-full pl-10 pr-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  />
                  </div>
-                <input
-                  type="text"
-                  id="location"
-                  value={location}
-                  onChange={e => {
-                    setLocation(e.target.value);
-                    setIsUserTyping(true);
-                  }}
-                  onFocus={() => setIsUserTyping(true)}
-                  autoComplete="off"
-                  required
-                  className="w-full pl-10 pr-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                />
+                 {event && location && (
+                   <a
+                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`}
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center whitespace-nowrap"
+                     title="Apri in Google Maps"
+                   >
+                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                       <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                     </svg>
+                   </a>
+                 )}
                  {isSuggestionsOpen && suggestions.length > 0 && (
                     <ul className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg max-h-60 overflow-auto">
                       {suggestions.map((suggestion) => (
@@ -336,7 +351,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
                       ))}
                     </ul>
                   )}
-              </div>
+               </div>
             </div>
             <div>
               <label htmlFor="description" className="block text-sm font-medium text-slate-400 mb-1">Descrizione</label>
