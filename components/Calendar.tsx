@@ -1,5 +1,6 @@
 import React from 'react';
 import { CalendarEvent } from '../types';
+import { formatDateToYYYYMMDD } from '../utils/dateUtils';
 
 interface CalendarProps {
   currentDate: Date;
@@ -52,16 +53,10 @@ const Calendar: React.FC<CalendarProps> = ({ currentDate, events, onDateClick, o
   };
 
   const getEventsForDay = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateToYYYYMMDD(date);
     return events.filter(e => {
-      const startDate = new Date(e.startDate);
-      startDate.setUTCHours(0, 0, 0, 0);
-      const endDate = new Date(e.endDate);
-      endDate.setUTCHours(0, 0, 0, 0);
-      const currentDate = new Date(dateStr);
-      currentDate.setUTCHours(0, 0, 0, 0);
-      return currentDate >= startDate && currentDate <= endDate;
-    }).sort((a,b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+      return dateStr >= e.startDate && dateStr <= e.endDate;
+    }).sort((a,b) => a.startDate.localeCompare(b.startDate));
   };
 
 
@@ -76,7 +71,7 @@ const Calendar: React.FC<CalendarProps> = ({ currentDate, events, onDateClick, o
       </div>
       <div className="grid grid-cols-7 grid-rows-6 flex-1">
         {days.map((d, index) => {
-          const fullDateStr = d.date ? d.date.toISOString().split('T')[0] : '';
+          const fullDateStr = d.date ? formatDateToYYYYMMDD(d.date) : '';
           const dayEvents = d.date ? getEventsForDay(d.date) : [];
           return (
             <div

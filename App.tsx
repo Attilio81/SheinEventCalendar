@@ -11,6 +11,7 @@ import BottomNavBar from './components/BottomNavBar';
 import { supabase } from './lib/supabaseClient';
 import { useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
+import { formatDateToYYYYMMDD } from './utils/dateUtils';
 
 type View = 'month' | 'week' | 'day';
 
@@ -173,16 +174,10 @@ const App: React.FC = () => {
   };
 
   const getEventsForDay = useCallback((date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateToYYYYMMDD(date);
     return events.filter(e => {
-      const startDate = new Date(e.startDate);
-      startDate.setUTCHours(0, 0, 0, 0);
-      const endDate = new Date(e.endDate);
-      endDate.setUTCHours(0, 0, 0, 0);
-      const currentDate = new Date(dateStr);
-      currentDate.setUTCHours(0, 0, 0, 0);
-      return currentDate >= startDate && currentDate <= endDate;
-    }).sort((a,b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+      return dateStr >= e.startDate && dateStr <= e.endDate;
+    }).sort((a,b) => a.startDate.localeCompare(b.startDate));
   }, [events]);
   
   const handleSaveEvent = useCallback(async (eventToSave: Omit<CalendarEvent, 'id' | 'color' | 'user_id'> & { id?: string }) => {
@@ -348,7 +343,7 @@ const App: React.FC = () => {
         onPrev={handlePrev}
         onNext={handleNext}
         onToday={handleToday}
-        onAddEvent={() => openModalForNewEvent(new Date().toISOString().split('T')[0])}
+        onAddEvent={() => openModalForNewEvent(formatDateToYYYYMMDD(new Date()))}
       />
     </div>
   );

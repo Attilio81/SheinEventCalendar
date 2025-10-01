@@ -1,5 +1,6 @@
 import React from 'react';
 import { CalendarEvent } from '../types';
+import { formatDateToYYYYMMDD } from '../utils/dateUtils';
 
 interface WeekViewProps {
   currentDate: Date;
@@ -42,16 +43,10 @@ const WeekView: React.FC<WeekViewProps> = ({ currentDate, events, onDateClick, o
   today.setHours(0, 0, 0, 0);
 
   const getEventsForDay = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateToYYYYMMDD(date);
     return events.filter(e => {
-      const startDate = new Date(e.startDate);
-      startDate.setUTCHours(0, 0, 0, 0);
-      const endDate = new Date(e.endDate);
-      endDate.setUTCHours(0, 0, 0, 0);
-      const currentDate = new Date(dateStr);
-      currentDate.setUTCHours(0, 0, 0, 0);
-      return currentDate >= startDate && currentDate <= endDate;
-    }).sort((a,b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+      return dateStr >= e.startDate && dateStr <= e.endDate;
+    }).sort((a,b) => a.startDate.localeCompare(b.startDate));
   };
 
   return (
@@ -65,7 +60,7 @@ const WeekView: React.FC<WeekViewProps> = ({ currentDate, events, onDateClick, o
       </div>
       <div className="grid grid-cols-7 grid-rows-1 flex-1">
         {weekDays.map((date, index) => {
-          const fullDateStr = date.toISOString().split('T')[0];
+          const fullDateStr = formatDateToYYYYMMDD(date);
           const dayEvents = getEventsForDay(date);
           const isToday = date.getTime() === today.getTime();
 
