@@ -337,19 +337,19 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
                      </svg>
                    </a>
                  )}
-                 {isSuggestionsOpen && suggestions.length > 0 && (
-                    <ul className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg max-h-60 overflow-auto">
-                      {suggestions.map((suggestion) => (
-                        <li
-                          key={suggestion.properties.place_id}
-                          className="px-4 py-2 text-white cursor-pointer hover:bg-slate-700"
-                          onClick={() => handleSuggestionClick(suggestion)}
-                        >
-                          {suggestion.properties.formatted}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+               {isSuggestionsOpen && suggestions.length > 0 && (
+                  <ul className="absolute z-10 left-0 right-0 top-full mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg max-h-60 overflow-auto">
+                    {suggestions.map((suggestion) => (
+                      <li
+                        key={suggestion.properties.place_id}
+                        className="px-4 py-2 text-white cursor-pointer hover:bg-slate-700"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                      >
+                        {suggestion.properties.formatted}
+                      </li>
+                    ))}
+                  </ul>
+                )}
                </div>
             </div>
             <div>
