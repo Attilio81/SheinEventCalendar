@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { CalendarEvent } from './types';
+import { CalendarEvent, UserProfile } from './types';
 import Header from './components/Header';
 import Calendar from './components/Calendar';
 import WeekView from './components/WeekView';
@@ -8,6 +8,7 @@ import EventModal from './components/EventModal';
 import DayEventsModal from './components/DayEventsModal';
 import UpcomingEvents from './components/UpcomingEvents';
 import BottomNavBar from './components/BottomNavBar';
+import ProfileModal from './components/ProfileModal';
 import { supabase } from './lib/supabaseClient';
 import { useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
@@ -21,9 +22,11 @@ const App: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [isDayModalOpen, setIsDayModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [view, setView] = useState<View>('month');
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   const getEvents = useCallback(async () => {
     // Fetches all events. RLS policies on Supabase will determine what is returned.
@@ -31,7 +34,7 @@ const App: React.FC = () => {
     const { data, error } = await supabase
       .from('events')
       .select('*');
-      
+
     if (error) {
       console.error('Error fetching events:', error);
       return;
@@ -51,9 +54,29 @@ const App: React.FC = () => {
     }
   }, []);
 
+  const getUserProfile = useCallback(async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.error('Error fetching profile:', error);
+      return;
+    }
+
+    if (data) {
+      setUserProfile(data);
+    }
+  }, [user]);
+
   useEffect(() => {
     if (session && user) {
       getEvents();
+      getUserProfile();
 
       const subscription = supabase
         .channel('public-events')
@@ -107,7 +130,7 @@ const App: React.FC = () => {
         supabase.removeChannel(subscription);
       };
     }
-  }, [session, user, getEvents]);
+  }, [session, user, getEvents, getUserProfile]);
 
   const handlePrev = () => {
     setCurrentDate(prevDate => {
@@ -297,7 +320,10 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen font-sans text-slate-200 bg-[#141414]">
-      <Header />
+      <Header
+        onOpenProfile={() => setIsProfileModalOpen(true)}
+        userProfile={userProfile}
+      />
       <main className="flex-1 flex flex-col overflow-y-auto p-4 md:p-6 space-y-6 pb-24">
         <UpcomingEvents events={events} onEventClick={openModalForExistingEvent} />
         <ViewSwitcher />
@@ -326,6 +352,17 @@ const App: React.FC = () => {
           onEventClick={(event) => {
             closeModal();
             openModalForExistingEvent(event);
+          }}
+        />
+      )}
+      {isProfileModalOpen && (
+        <ProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          currentProfile={userProfile}
+          onProfileUpdate={(profile) => {
+            setUserProfile(profile);
+            setIsProfileModalOpen(false);
           }}
         />
       )}
