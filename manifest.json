@@ -6,13 +6,18 @@
   "display": "standalone",
   "background_color": "#141414",
   "theme_color": "#ef4444",
-  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "/logo.png",
-      "sizes": "192x192 512x512",
+      "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
