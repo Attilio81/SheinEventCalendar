@@ -15,6 +15,8 @@ View your app in AI Studio: https://ai.studio/apps/drive/1fIxqUucuYRaiUzBon5kl6G
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+2. Set up environment variables:
+   - Copy `.env.example` to `.env.local`
+   - Fill in your Supabase and Geoapify API keys
 3. Run the app:
    `npm run dev`
