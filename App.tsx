@@ -203,13 +203,13 @@ const App: React.FC = () => {
             description: eventToSave.description,
           })
           .eq('id', eventToSave.id);
-        
+
         if (error) throw error;
       } else {
         // Add new event
         const colors = ['blue', 'red', 'green', 'yellow', 'purple', 'indigo'];
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
-        
+
         const { error } = await supabase
           .from('events')
           .insert({
@@ -224,12 +224,15 @@ const App: React.FC = () => {
 
         if (error) throw error;
       }
+
+      // Refresh events list after successful save
+      await getEvents();
       closeModal();
     } catch(error) {
       console.error("Error saving event:", error);
       throw error; // Re-throw to be caught by the modal
     }
-  }, [user, closeModal]);
+  }, [user, closeModal, getEvents]);
 
   const handleDeleteEvent = async (eventId: string): Promise<{ success: boolean; error?: string }> => {
     if (!user) {
@@ -247,8 +250,9 @@ const App: React.FC = () => {
       const errorMessage = error?.message || "Eliminazione fallita. L'evento non è stato trovato o non hai i permessi necessari.";
       return { success: false, error: errorMessage };
     }
-    
-    // Success! The UI will update via the realtime subscription.
+
+    // Refresh events list after successful delete
+    await getEvents();
     return { success: true };
   };
 
