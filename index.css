@@ -1,3 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* iOS-specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* Fix iOS date input appearance */
+  input[type="date"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Fix iOS modal alignment */
+  .fixed.inset-0 {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent zoom on input focus for iOS */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}

@@ -48,7 +48,8 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
   }, [event, selectedDate]);
 
   useEffect(() => {
-    if (location.trim() === '') {
+    // Don't fetch if location is empty or too short
+    if (location.trim() === '' || location.trim().length < 3) {
       setSuggestions([]);
       setIsSuggestionsOpen(false);
       return;
@@ -73,6 +74,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
         } catch (error) {
           console.error('Error fetching Geoapify suggestions:', error);
           setSuggestions([]);
+          setIsSuggestionsOpen(false);
         }
       };
 
@@ -152,7 +154,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-slate-900 border border-slate-700 rounded-lg shadow-2xl shadow-red-900/20 w-full max-w-lg transform transition-all">
+      <div className="bg-slate-900 border border-slate-700 rounded-lg shadow-2xl shadow-red-900/20 w-full max-w-lg max-h-[90vh] overflow-y-auto transform transition-all">
         <div className="flex items-center justify-between p-4 border-b border-slate-800">
           <h2 className="text-xl font-bold text-white">{event ? 'Modifica Evento' : 'Nuovo Evento'}</h2>
           <button onClick={onClose} className="p-2 rounded-full text-slate-400 hover:bg-slate-700 hover:text-white">
@@ -168,11 +170,25 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
             <div className="flex space-x-4">
               <div className="flex-1">
                 <label htmlFor="startDate" className="block text-sm font-medium text-slate-400 mb-1">Inizio</label>
-                <input type="date" id="startDate" value={startDate} onChange={e => setStartDate(e.target.value)} required className="w-full px-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"/>
+                <input
+                  type="date"
+                  id="startDate"
+                  value={startDate}
+                  onChange={e => setStartDate(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 [-webkit-appearance:none]"
+                />
               </div>
               <div className="flex-1">
                 <label htmlFor="endDate" className="block text-sm font-medium text-slate-400 mb-1">Fine</label>
-                <input type="date" id="endDate" value={endDate} onChange={e => setEndDate(e.target.value)} required className="w-full px-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"/>
+                <input
+                  type="date"
+                  id="endDate"
+                  value={endDate}
+                  onChange={e => setEndDate(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 [-webkit-appearance:none]"
+                />
               </div>
             </div>
              <div ref={wrapperRef}>
