@@ -60,7 +60,8 @@ const App: React.FC = () => {
           'postgres_changes',
           { event: '*', schema: 'public', table: 'events' },
           (payload) => {
-             // RLS ensures user only gets updates for events they can see.
+            console.log('📡 Realtime event received:', payload.eventType, payload);
+
             if (payload.eventType === 'INSERT') {
               const newRecord = payload.new;
               const newEvent: CalendarEvent = {
@@ -73,6 +74,7 @@ const App: React.FC = () => {
                 color: newRecord.color,
                 user_id: newRecord.user_id,
               };
+              console.log('✅ Adding new event:', newEvent.title);
               setEvents(currentEvents =>
                 currentEvents.some(e => e.id === newEvent.id)
                   ? currentEvents
@@ -90,20 +92,25 @@ const App: React.FC = () => {
                 color: updatedRecord.color,
                 user_id: updatedRecord.user_id,
               };
+              console.log('✏️ Updating event:', updatedEvent.title);
               setEvents(currentEvents =>
                 currentEvents.map(e => (e.id === updatedEvent.id ? updatedEvent : e))
               );
             } else if (payload.eventType === 'DELETE') {
               const deletedRecordId = payload.old.id;
+              console.log('🗑️ Deleting event:', deletedRecordId);
               setEvents(currentEvents =>
                 currentEvents.filter(e => e.id !== deletedRecordId)
               );
             }
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('📡 Subscription status:', status);
+        });
 
       return () => {
+        console.log('🔌 Unsubscribing from realtime');
         supabase.removeChannel(subscription);
       };
     }
