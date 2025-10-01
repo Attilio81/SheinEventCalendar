@@ -339,7 +339,7 @@ const App: React.FC = () => {
   };
 
   const ViewSwitcher: React.FC = () => (
-    <div className="flex flex-col sm:flex-row justify-center mb-4 gap-2">
+    <div className="flex flex-col sm:flex-row justify-center items-center mb-4 gap-2">
       <div className="flex items-center bg-slate-800 rounded-lg p-1 space-x-1">
         {(['month', 'week', 'day'] as const).map(viewName => (
           <button
