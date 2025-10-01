@@ -262,7 +262,6 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
     setLocation(suggestion.properties.formatted);
     setSuggestions([]);
     setIsSuggestionsOpen(false);
-    setIsUserTyping(false);
   };
   
   return (
