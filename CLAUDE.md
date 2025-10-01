@@ -44,6 +44,14 @@ All Vite environment variables must be prefixed with `VITE_` to be exposed to th
 3. Ensure `VITE_` prefix is included for client-side variables
 4. Redeploy after adding/updating environment variables
 
+## Supabase Setup
+
+**Database setup:**
+1. Create an `events` table in Supabase with the schema defined in the Database Schema section
+2. Run the SQL script in `supabase-rls-policies.sql` to configure Row-Level Security policies
+3. This enables shared calendar functionality where all users can see all events
+4. Enable Realtime for the events table to get live updates across all clients
+
 ## Architecture
 
 ### State Management
@@ -74,8 +82,10 @@ All Vite environment variables must be prefixed with `VITE_` to be exposed to th
 
 **Row-Level Security (RLS):**
 - RLS policies on Supabase control event access
-- Events are user-owned (user_id field)
+- **Shared calendar mode**: All authenticated users can view all events
+- Events are user-owned (user_id field) - only the creator can edit/delete
 - Updates/deletes enforce ownership checks in both client and database
+- To configure RLS policies, run `supabase-rls-policies.sql` in Supabase SQL Editor
 
 ### Component Structure
 
