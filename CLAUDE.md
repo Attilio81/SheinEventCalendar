@@ -46,11 +46,28 @@ All Vite environment variables must be prefixed with `VITE_` to be exposed to th
 
 ## Supabase Setup
 
-**Database setup:**
-1. Create an `events` table in Supabase with the schema defined in the Database Schema section
-2. Run the SQL script in `supabase-rls-policies.sql` to configure Row-Level Security policies
-3. This enables shared calendar functionality where all users can see all events
-4. Enable Realtime for the events table to get live updates across all clients
+**Complete database setup:**
+1. Go to Supabase Dashboard → SQL Editor
+2. Run the complete setup script `supabase-setup-complete.sql`
+   - This creates the events table with proper schema
+   - Configures Row-Level Security (RLS) policies for shared calendar
+   - Enables Realtime for live updates
+   - Creates indexes for performance
+
+**What this does:**
+- **Shared viewing**: All authenticated users can see ALL events from all users
+- **Ownership control**: Users can only edit/delete their own events
+- **Realtime sync**: Changes are broadcast to all connected clients instantly
+
+**Troubleshooting:**
+- If you don't see events from other users, verify RLS policies are applied:
+  ```sql
+  SELECT * FROM pg_policies WHERE tablename = 'events';
+  ```
+- Check if Realtime is enabled:
+  ```sql
+  SELECT * FROM pg_publication_tables WHERE pubname = 'supabase_realtime';
+  ```
 
 ## Architecture
 
