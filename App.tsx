@@ -27,6 +27,8 @@ const App: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [view, setView] = useState<View>('month');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [showMyEventsOnly, setShowMyEventsOnly] = useState(false);
+  const [myParticipatingEventIds, setMyParticipatingEventIds] = useState<Set<string>>(new Set());
 
   const getEvents = useCallback(async () => {
     // Fetches all events. RLS policies on Supabase will determine what is returned.
@@ -73,12 +75,32 @@ const App: React.FC = () => {
     }
   }, [user]);
 
+  const getMyParticipations = useCallback(async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('event_participants')
+      .select('event_id')
+      .eq('user_id', user.id)
+      .eq('status', 'yes');
+
+    if (error) {
+      console.error('Error fetching participations:', error);
+      return;
+    }
+
+    if (data) {
+      setMyParticipatingEventIds(new Set(data.map(p => p.event_id)));
+    }
+  }, [user]);
+
   useEffect(() => {
     if (session && user) {
       getEvents();
       getUserProfile();
+      getMyParticipations();
 
-      const subscription = supabase
+      const eventsSubscription = supabase
         .channel('public-events')
         .on<any>(
           'postgres_changes',
@@ -126,11 +148,24 @@ const App: React.FC = () => {
         )
         .subscribe();
 
+      // Subscribe to event_participants changes
+      const participantsSubscription = supabase
+        .channel('my-participations')
+        .on<any>(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'event_participants', filter: `user_id=eq.${user.id}` },
+          () => {
+            getMyParticipations();
+          }
+        )
+        .subscribe();
+
       return () => {
-        supabase.removeChannel(subscription);
+        supabase.removeChannel(eventsSubscription);
+        supabase.removeChannel(participantsSubscription);
       };
     }
-  }, [session, user, getEvents, getUserProfile]);
+  }, [session, user, getEvents, getUserProfile, getMyParticipations]);
 
   const handlePrev = () => {
     setCurrentDate(prevDate => {
@@ -271,19 +306,24 @@ const App: React.FC = () => {
     return <Auth />;
   }
 
+  // Filter events based on participation
+  const filteredEvents = showMyEventsOnly
+    ? events.filter(e => myParticipatingEventIds.has(e.id))
+    : events;
+
   const renderView = () => {
     switch (view) {
       case 'month':
-        return <Calendar 
-          currentDate={currentDate} 
-          events={events}
+        return <Calendar
+          currentDate={currentDate}
+          events={filteredEvents}
           onDateClick={openDayModal}
           onEventClick={openModalForExistingEvent}
         />;
       case 'week':
         return <WeekView
           currentDate={currentDate}
-          events={events}
+          events={filteredEvents}
           onDateClick={openDayModal}
           onEventClick={openModalForExistingEvent}
         />;
@@ -299,7 +339,7 @@ const App: React.FC = () => {
   };
 
   const ViewSwitcher: React.FC = () => (
-    <div className="flex justify-center md:justify-end mb-4">
+    <div className="flex flex-col sm:flex-row justify-center mb-4 gap-2">
       <div className="flex items-center bg-slate-800 rounded-lg p-1 space-x-1">
         {(['month', 'week', 'day'] as const).map(viewName => (
           <button
@@ -315,6 +355,17 @@ const App: React.FC = () => {
           </button>
         ))}
       </div>
+      <button
+        onClick={() => setShowMyEventsOnly(!showMyEventsOnly)}
+        className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
+          showMyEventsOnly
+            ? 'bg-green-600 text-white'
+            : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+        }`}
+        title={showMyEventsOnly ? 'Mostra tutti gli eventi' : 'Mostra solo i miei eventi'}
+      >
+        {showMyEventsOnly ? '✓ I miei eventi' : 'Tutti gli eventi'}
+      </button>
     </div>
   );
 
@@ -325,7 +376,7 @@ const App: React.FC = () => {
         userProfile={userProfile}
       />
       <main className="flex-1 flex flex-col overflow-y-auto p-4 md:p-6 space-y-6 pb-24">
-        <UpcomingEvents events={events} onEventClick={openModalForExistingEvent} />
+        <UpcomingEvents events={filteredEvents} onEventClick={openModalForExistingEvent} />
         <ViewSwitcher />
         <div className="flex-1 flex flex-col min-h-[600px]">
           {renderView()}
