@@ -25,3 +25,12 @@ export interface EventParticipant {
   updated_at?: string;
   profile?: UserProfile;
 }
+
+export interface Notification {
+  id: string;
+  event_id: string;
+  message: string;
+  created_at: string;
+  read_by: string[]; // Array of user IDs who have read this notification
+  created_by: string;
+}

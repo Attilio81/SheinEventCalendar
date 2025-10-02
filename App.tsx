@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { CalendarEvent, UserProfile } from './types';
+import { CalendarEvent, UserProfile, Notification } from './types';
 import Header from './components/Header';
 import Calendar from './components/Calendar';
 import WeekView from './components/WeekView';
@@ -9,6 +9,7 @@ import DayEventsModal from './components/DayEventsModal';
 import UpcomingEvents from './components/UpcomingEvents';
 import BottomNavBar from './components/BottomNavBar';
 import ProfileModal from './components/ProfileModal';
+import NotificationsModal from './components/NotificationsModal';
 import { supabase } from './lib/supabaseClient';
 import { useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
@@ -29,6 +30,8 @@ const App: React.FC = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [showMyEventsOnly, setShowMyEventsOnly] = useState(false);
   const [myParticipatingEventIds, setMyParticipatingEventIds] = useState<Set<string>>(new Set());
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
 
   const getEvents = useCallback(async () => {
     // Fetches all events. RLS policies on Supabase will determine what is returned.
@@ -94,11 +97,30 @@ const App: React.FC = () => {
     }
   }, [user]);
 
+  const getNotifications = useCallback(async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching notifications:', error);
+      return;
+    }
+
+    if (data) {
+      setNotifications(data);
+    }
+  }, [user]);
+
   useEffect(() => {
     if (session && user) {
       getEvents();
       getUserProfile();
       getMyParticipations();
+      getNotifications();
 
       const eventsSubscription = supabase
         .channel('public-events')
@@ -160,12 +182,41 @@ const App: React.FC = () => {
         )
         .subscribe();
 
+      // Subscribe to notifications changes
+      const notificationsSubscription = supabase
+        .channel('public-notifications')
+        .on<any>(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'notifications' },
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              const newNotification: Notification = payload.new;
+              setNotifications(current =>
+                current.some(n => n.id === newNotification.id)
+                  ? current
+                  : [newNotification, ...current]
+              );
+            } else if (payload.eventType === 'UPDATE') {
+              const updatedNotification: Notification = payload.new;
+              setNotifications(current =>
+                current.map(n => (n.id === updatedNotification.id ? updatedNotification : n))
+              );
+            } else if (payload.eventType === 'DELETE') {
+              setNotifications(current =>
+                current.filter(n => n.id !== payload.old.id)
+              );
+            }
+          }
+        )
+        .subscribe();
+
       return () => {
         supabase.removeChannel(eventsSubscription);
         supabase.removeChannel(participantsSubscription);
+        supabase.removeChannel(notificationsSubscription);
       };
     }
-  }, [session, user, getEvents, getUserProfile, getMyParticipations]);
+  }, [session, user, getEvents, getUserProfile, getMyParticipations, getNotifications]);
 
   const handlePrev = () => {
     setCurrentDate(prevDate => {
@@ -301,6 +352,38 @@ const App: React.FC = () => {
     return { success: true };
   };
 
+  const handleMarkNotificationAsRead = async (notificationId: string) => {
+    if (!user) return;
+
+    const notification = notifications.find(n => n.id === notificationId);
+    if (!notification) return;
+
+    // Add current user to read_by array if not already there
+    if (!notification.read_by.includes(user.id)) {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read_by: [...notification.read_by, user.id] })
+        .eq('id', notificationId);
+
+      if (error) {
+        console.error('Error marking notification as read:', error);
+      }
+    }
+  };
+
+  const handleNotificationClick = async (notification: Notification) => {
+    // Find the event related to this notification
+    const event = events.find(e => e.id === notification.event_id);
+
+    if (event) {
+      // Close notifications modal
+      setIsNotificationsModalOpen(false);
+
+      // Open the event modal
+      openModalForExistingEvent(event);
+    }
+  };
+
 
   if (!session) {
     return <Auth />;
@@ -310,6 +393,11 @@ const App: React.FC = () => {
   const filteredEvents = showMyEventsOnly
     ? events.filter(e => myParticipatingEventIds.has(e.id))
     : events;
+
+  // Calculate unread notifications count
+  const unreadNotificationsCount = user
+    ? notifications.filter(n => !n.read_by.includes(user.id)).length
+    : 0;
 
   const renderView = () => {
     switch (view) {
@@ -374,6 +462,8 @@ const App: React.FC = () => {
       <Header
         onOpenProfile={() => setIsProfileModalOpen(true)}
         userProfile={userProfile}
+        unreadNotificationsCount={unreadNotificationsCount}
+        onOpenNotifications={() => setIsNotificationsModalOpen(true)}
       />
       <main className="flex-1 flex flex-col overflow-y-auto p-4 md:p-6 space-y-6 pb-24">
         <UpcomingEvents events={filteredEvents} onEventClick={openModalForExistingEvent} />
@@ -415,6 +505,16 @@ const App: React.FC = () => {
             setUserProfile(profile);
             setIsProfileModalOpen(false);
           }}
+        />
+      )}
+      {isNotificationsModalOpen && user && (
+        <NotificationsModal
+          isOpen={isNotificationsModalOpen}
+          onClose={() => setIsNotificationsModalOpen(false)}
+          notifications={notifications}
+          currentUserId={user.id}
+          onNotificationClick={handleNotificationClick}
+          onMarkAsRead={handleMarkNotificationAsRead}
         />
       )}
       <BottomNavBar
