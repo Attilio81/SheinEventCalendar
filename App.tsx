@@ -14,6 +14,7 @@ import { supabase } from './lib/supabaseClient';
 import { useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
 import { formatDateToYYYYMMDD } from './utils/dateUtils';
+import { requestNotificationPermission, sendPushNotification } from './utils/pushNotifications';
 
 type View = 'month' | 'week' | 'day';
 
@@ -102,7 +103,7 @@ const App: React.FC = () => {
 
     const { data, error } = await supabase
       .from('notifications')
-      .select('*')
+      .select('*, events!inner(start_date)')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -111,7 +112,17 @@ const App: React.FC = () => {
     }
 
     if (data) {
-      setNotifications(data);
+      // Filter out notifications for events that have already started
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayStr = formatDateToYYYYMMDD(today);
+
+      const activeNotifications = data.filter((notif: any) => {
+        // Keep notification if event hasn't started yet
+        return notif.events?.start_date >= todayStr;
+      });
+
+      setNotifications(activeNotifications);
     }
   }, [user]);
 
@@ -121,6 +132,9 @@ const App: React.FC = () => {
       getUserProfile();
       getMyParticipations();
       getNotifications();
+
+      // Request notification permission on first load
+      requestNotificationPermission();
 
       const eventsSubscription = supabase
         .channel('public-events')
@@ -188,14 +202,40 @@ const App: React.FC = () => {
         .on<any>(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'notifications' },
-          (payload) => {
+          async (payload) => {
             if (payload.eventType === 'INSERT') {
-              const newNotification: Notification = payload.new;
-              setNotifications(current =>
-                current.some(n => n.id === newNotification.id)
-                  ? current
-                  : [newNotification, ...current]
-              );
+              // Fetch the related event to check if it's still in the future
+              const { data: eventData } = await supabase
+                .from('events')
+                .select('start_date, title')
+                .eq('id', payload.new.event_id)
+                .single();
+
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const todayStr = formatDateToYYYYMMDD(today);
+
+              if (eventData && eventData.start_date >= todayStr) {
+                const newNotification: Notification = payload.new;
+                setNotifications(current =>
+                  current.some(n => n.id === newNotification.id)
+                    ? current
+                    : [newNotification, ...current]
+                );
+
+                // Send push notification if not created by current user
+                if (newNotification.created_by !== user.id) {
+                  sendPushNotification({
+                    title: 'Shein Event Calendar',
+                    body: newNotification.message,
+                    tag: newNotification.event_id,
+                    data: {
+                      event_id: newNotification.event_id,
+                      notification_id: newNotification.id,
+                    },
+                  });
+                }
+              }
             } else if (payload.eventType === 'UPDATE') {
               const updatedNotification: Notification = payload.new;
               setNotifications(current =>
