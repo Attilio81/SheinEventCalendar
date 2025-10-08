@@ -15,6 +15,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, currentPro
   const [nickname, setNickname] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [allProfiles, setAllProfiles] = useState<UserProfile[]>([]);
 
   useEffect(() => {
     if (isOpen && currentProfile) {
@@ -22,7 +23,28 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, currentPro
     } else if (isOpen && !currentProfile) {
       setNickname('');
     }
+
+    // Fetch all profiles when modal opens
+    if (isOpen) {
+      fetchAllProfiles();
+    }
   }, [isOpen, currentProfile]);
+
+  const fetchAllProfiles = async () => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('nickname', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching profiles:', error);
+      return;
+    }
+
+    if (data) {
+      setAllProfiles(data);
+    }
+  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -58,6 +80,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, currentPro
         if (data) onProfileUpdate(data);
       }
 
+      // Refresh profiles list after save
+      await fetchAllProfiles();
       onClose();
     } catch (err: any) {
       if (err.code === '23505') {
@@ -75,7 +99,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, currentPro
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-800 rounded-lg p-6 max-w-md w-full">
+      <div className="bg-slate-800 rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
         <h2 className="text-2xl font-bold text-white mb-4">
           {currentProfile ? 'Modifica Profilo' : 'Crea Profilo'}
         </h2>
@@ -95,7 +119,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, currentPro
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
         </div>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 mb-6">
           <button
             onClick={onClose}
             className="px-4 py-2 bg-slate-700 text-white rounded-md hover:bg-slate-600"
@@ -111,6 +135,34 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, currentPro
             {loading ? 'Salvataggio...' : 'Salva'}
           </button>
         </div>
+
+        {/* Members List */}
+        {allProfiles.length > 0 && (
+          <div className="border-t border-slate-700 pt-4">
+            <h3 className="text-lg font-semibold text-white mb-3">
+              Membri del gruppo ({allProfiles.length})
+            </h3>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {allProfiles.map((profile) => (
+                <div
+                  key={profile.id}
+                  className={`px-3 py-2 rounded-md ${
+                    profile.id === user?.id
+                      ? 'bg-red-900/30 border border-red-700/50'
+                      : 'bg-slate-700/50'
+                  }`}
+                >
+                  <p className="text-white text-sm">
+                    {profile.nickname}
+                    {profile.id === user?.id && (
+                      <span className="text-xs text-red-400 ml-2">(Tu)</span>
+                    )}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
