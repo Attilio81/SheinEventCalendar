@@ -7,10 +7,6 @@ export interface CalendarEvent {
   description?: string;
   color: string;
   user_id?: string;
-  spotify_playlist_id?: string;
-  spotify_playlist_url?: string;
-  spotify_playlist_name?: string;
-  spotify_playlist_image?: string;
 }
 
 export interface UserProfile {
