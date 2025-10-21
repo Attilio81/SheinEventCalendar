@@ -15,6 +15,7 @@ import { useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
 import { formatDateToYYYYMMDD } from './utils/dateUtils';
 import { requestNotificationPermission, sendPushNotification } from './utils/pushNotifications';
+import { generateICS, downloadICS } from './utils/icsGenerator';
 
 type View = 'month' | 'week' | 'day';
 
@@ -443,6 +444,17 @@ const App: React.FC = () => {
     }
   };
 
+  const handleExportCalendar = () => {
+    if (events.length === 0) {
+      alert('Nessun evento da esportare');
+      return;
+    }
+
+    const icsContent = generateICS(events, 'Shein Event Calendar');
+    const filename = `shein-calendar-${new Date().toISOString().split('T')[0]}.ics`;
+    downloadICS(icsContent, filename);
+  };
+
 
   if (!session) {
     return <Auth />;
@@ -523,6 +535,7 @@ const App: React.FC = () => {
         userProfile={userProfile}
         unreadNotificationsCount={unreadNotificationsCount}
         onOpenNotifications={() => setIsNotificationsModalOpen(true)}
+        onExportCalendar={handleExportCalendar}
       />
       <main className="flex-1 flex flex-col overflow-y-auto p-4 md:p-6 space-y-6 pb-24">
         <UpcomingEvents events={filteredEvents} onEventClick={openModalForExistingEvent} />

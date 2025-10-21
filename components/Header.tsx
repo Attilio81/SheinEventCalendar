@@ -1,16 +1,17 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { UserProfile } from '../types';
-import { Bell } from 'lucide-react';
+import { Bell, Download } from 'lucide-react';
 
 interface HeaderProps {
   onOpenProfile: () => void;
   userProfile: UserProfile | null;
   unreadNotificationsCount?: number;
   onOpenNotifications?: () => void;
+  onExportCalendar?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onOpenProfile, userProfile, unreadNotificationsCount = 0, onOpenNotifications }) => {
+const Header: React.FC<HeaderProps> = ({ onOpenProfile, userProfile, unreadNotificationsCount = 0, onOpenNotifications, onExportCalendar }) => {
   const { user, signOut } = useAuth();
 
   return (
@@ -23,6 +24,13 @@ const Header: React.FC<HeaderProps> = ({ onOpenProfile, userProfile, unreadNotif
       <div className="flex items-center gap-2">
         {user && (
           <>
+            <button
+              onClick={onExportCalendar}
+              className="px-2 py-1.5 md:px-3 text-xs md:text-sm font-semibold text-slate-300 bg-slate-800 border border-slate-700 rounded-md hover:bg-slate-700 hover:text-white"
+              title="Scarica calendario (ICS)"
+            >
+              <Download className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
             <button
               onClick={onOpenNotifications}
               className="relative px-2 py-1.5 md:px-3 text-xs md:text-sm font-semibold text-slate-300 bg-slate-800 border border-slate-700 rounded-md hover:bg-slate-700 hover:text-white"
