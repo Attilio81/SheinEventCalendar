@@ -9,7 +9,7 @@ interface EventModalProps {
   event: CalendarEvent | null;
   selectedDate: string | null;
   onClose: () => void;
-  onSave: (event: Omit<CalendarEvent, 'color'> & { id?: string }) => Promise<void>;
+  onSave: (event: Omit<CalendarEvent, 'user_id'> & { id?: string }) => Promise<void>;
   onDelete: (eventId: string) => Promise<{ success: boolean; error?: string }>;
 }
 
@@ -20,6 +20,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
   const [endDate, setEndDate] = useState('');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
+  const [color, setColor] = useState('blue');
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -44,6 +45,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
       setEndDate(event.endDate);
       setLocation(event.location);
       setDescription(event.description || '');
+      setColor(event.color || 'blue');
       loadParticipants(event.id);
 
       // Set up real-time subscription for participants
@@ -229,7 +231,8 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
         startDate,
         endDate,
         location,
-        description
+        description,
+        color
       });
     } catch (error: any) {
       setSaveError(error.message || 'Si è verificato un errore durante il salvataggio.');
@@ -355,6 +358,35 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
             <div>
               <label htmlFor="description" className="block text-sm font-medium text-slate-400 mb-1">Descrizione</label>
               <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"/>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-2">Colore Evento</label>
+              <div className="flex gap-2 flex-wrap">
+                {['blue', 'red', 'green', 'yellow', 'purple', 'indigo'].map((colorOption) => (
+                  <button
+                    key={colorOption}
+                    type="button"
+                    onClick={() => setColor(colorOption)}
+                    className={`w-10 h-10 rounded-lg transition-all border-2 ${
+                      color === colorOption
+                        ? 'border-white shadow-lg scale-110'
+                        : 'border-slate-600 hover:border-slate-500'
+                    }`}
+                    style={{
+                      backgroundColor: {
+                        blue: '#3b82f6',
+                        red: '#ef4444',
+                        green: '#22c55e',
+                        yellow: '#eab308',
+                        purple: '#a855f7',
+                        indigo: '#6366f1'
+                      }[colorOption]
+                    }}
+                    title={colorOption.charAt(0).toUpperCase() + colorOption.slice(1)}
+                  />
+                ))}
+              </div>
             </div>
 
             {event && (

@@ -323,7 +323,7 @@ const App: React.FC = () => {
     }).sort((a,b) => a.startDate.localeCompare(b.startDate));
   }, [events]);
   
-  const handleSaveEvent = useCallback(async (eventToSave: Omit<CalendarEvent, 'id' | 'color' | 'user_id'> & { id?: string }) => {
+  const handleSaveEvent = useCallback(async (eventToSave: Omit<CalendarEvent, 'user_id'> & { id?: string }) => {
     if (!user) {
         console.error("User not authenticated to save event.");
         throw new Error("User not authenticated to save event.");
@@ -339,15 +339,13 @@ const App: React.FC = () => {
             end_date: eventToSave.endDate,
             location: eventToSave.location,
             description: eventToSave.description,
+            color: eventToSave.color,
           })
           .eq('id', eventToSave.id);
 
         if (error) throw error;
       } else {
         // Add new event
-        const colors = ['blue', 'red', 'green', 'yellow', 'purple', 'indigo'];
-        const randomColor = colors[Math.floor(Math.random() * colors.length)];
-
         const { error } = await supabase
           .from('events')
           .insert({
@@ -356,7 +354,7 @@ const App: React.FC = () => {
             end_date: eventToSave.endDate,
             location: eventToSave.location,
             description: eventToSave.description,
-            color: randomColor,
+            color: eventToSave.color,
             user_id: user.id
           });
 
