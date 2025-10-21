@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { CalendarEvent, UserProfile, Notification } from './types';
 import Header from './components/Header';
 import Calendar from './components/Calendar';
@@ -17,6 +17,7 @@ import Auth from './components/Auth';
 import { formatDateToYYYYMMDD } from './utils/dateUtils';
 import { requestNotificationPermission, sendPushNotification } from './utils/pushNotifications';
 import { generateICS, downloadICS } from './utils/icsGenerator';
+import { searchEvents } from './utils/searchUtils';
 
 type View = 'month' | 'week' | 'day' | 'agenda';
 
@@ -35,6 +36,7 @@ const App: React.FC = () => {
   const [myParticipatingEventIds, setMyParticipatingEventIds] = useState<Set<string>>(new Set());
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const getEvents = useCallback(async () => {
     // Fetches all events. RLS policies on Supabase will determine what is returned.
@@ -459,10 +461,19 @@ const App: React.FC = () => {
     return <Auth />;
   }
 
-  // Filter events based on participation
-  const filteredEvents = showMyEventsOnly
-    ? events.filter(e => myParticipatingEventIds.has(e.id))
-    : events;
+  // Filter events based on participation and search term
+  const filteredEvents = useMemo(() => {
+    let result = showMyEventsOnly
+      ? events.filter(e => myParticipatingEventIds.has(e.id))
+      : events;
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      result = searchEvents(result, searchTerm);
+    }
+
+    return result;
+  }, [events, showMyEventsOnly, myParticipatingEventIds, searchTerm]);
 
   // Calculate unread notifications count
   const unreadNotificationsCount = user
@@ -541,6 +552,8 @@ const App: React.FC = () => {
         unreadNotificationsCount={unreadNotificationsCount}
         onOpenNotifications={() => setIsNotificationsModalOpen(true)}
         onExportCalendar={handleExportCalendar}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
       />
       <main className="flex-1 flex flex-col overflow-y-auto p-4 md:p-6 space-y-6 pb-24">
         <UpcomingEvents events={filteredEvents} onEventClick={openModalForExistingEvent} />
