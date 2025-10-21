@@ -9,6 +9,7 @@ interface NotificationsModalProps {
   currentUserId: string;
   onNotificationClick: (notification: Notification) => void;
   onMarkAsRead: (notificationId: string) => void;
+  onMarkAllAsRead: () => void;
 }
 
 const NotificationsModal: React.FC<NotificationsModalProps> = ({
@@ -18,6 +19,7 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
   currentUserId,
   onNotificationClick,
   onMarkAsRead,
+  onMarkAllAsRead,
 }) => {
   if (!isOpen) return null;
 
@@ -112,7 +114,15 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-700">
+        <div className="p-4 border-t border-slate-700 space-y-2">
+          {notifications.some(n => !n.read_by.includes(currentUserId)) && (
+            <button
+              onClick={onMarkAllAsRead}
+              className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium"
+            >
+              Leggi tutte le notifiche
+            </button>
+          )}
           <button
             onClick={onClose}
             className="w-full px-4 py-2 bg-slate-800 text-white rounded-md hover:bg-slate-700 transition-colors"

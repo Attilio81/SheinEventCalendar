@@ -411,6 +411,25 @@ const App: React.FC = () => {
     }
   };
 
+  const handleMarkAllAsRead = async () => {
+    if (!user) return;
+
+    // Get all unread notifications
+    const unreadNotifications = notifications.filter(n => !n.read_by.includes(user.id));
+
+    // Mark each one as read
+    for (const notification of unreadNotifications) {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read_by: [...notification.read_by, user.id] })
+        .eq('id', notification.id);
+
+      if (error) {
+        console.error('Error marking notification as read:', error);
+      }
+    }
+  };
+
   const handleNotificationClick = async (notification: Notification) => {
     // Find the event related to this notification
     const event = events.find(e => e.id === notification.event_id);
@@ -555,6 +574,7 @@ const App: React.FC = () => {
           currentUserId={user.id}
           onNotificationClick={handleNotificationClick}
           onMarkAsRead={handleMarkNotificationAsRead}
+          onMarkAllAsRead={handleMarkAllAsRead}
         />
       )}
       <BottomNavBar
