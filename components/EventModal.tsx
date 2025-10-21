@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CalendarEvent, EventParticipant } from '../types';
 import { CloseIcon, TrashIcon, LocationMarkerIcon } from './Icons';
+import { Music, X } from 'lucide-react';
 import { geoapifyApiKey } from '../lib/geoapifyClient';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
+import SpotifyPlaylistPicker from './SpotifyPlaylistPicker';
+import { getSpotifyToken, getSpotifyAuthUrl } from '../utils/spotifyClient';
 
 interface EventModalProps {
   event: CalendarEvent | null;
@@ -21,6 +24,12 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [color, setColor] = useState('blue');
+  const [spotifyPlaylistId, setSpotifyPlaylistId] = useState<string | undefined>(undefined);
+  const [spotifyPlaylistName, setSpotifyPlaylistName] = useState<string | undefined>(undefined);
+  const [spotifyPlaylistImage, setSpotifyPlaylistImage] = useState<string | undefined>(undefined);
+  const [spotifyPlaylistUrl, setSpotifyPlaylistUrl] = useState<string | undefined>(undefined);
+  const [isSpotifyPickerOpen, setIsSpotifyPickerOpen] = useState(false);
+  const [spotifyToken, setSpotifyTokenState] = useState<string | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -38,6 +47,12 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
   const [isLoadingParticipants, setIsLoadingParticipants] = useState(false);
 
 
+  // Load Spotify token on mount
+  useEffect(() => {
+    const token = getSpotifyToken();
+    setSpotifyTokenState(token);
+  }, []);
+
   useEffect(() => {
     if (event) {
       setTitle(event.title);
@@ -46,6 +61,10 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
       setLocation(event.location);
       setDescription(event.description || '');
       setColor(event.color || 'blue');
+      setSpotifyPlaylistId(event.spotify_playlist_id);
+      setSpotifyPlaylistName(event.spotify_playlist_name);
+      setSpotifyPlaylistImage(event.spotify_playlist_image);
+      setSpotifyPlaylistUrl(event.spotify_playlist_url);
       loadParticipants(event.id);
 
       // Set up real-time subscription for participants
@@ -232,7 +251,11 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
         endDate,
         location,
         description,
-        color
+        color,
+        spotify_playlist_id: spotifyPlaylistId,
+        spotify_playlist_url: spotifyPlaylistUrl,
+        spotify_playlist_name: spotifyPlaylistName,
+        spotify_playlist_image: spotifyPlaylistImage
       });
     } catch (error: any) {
       setSaveError(error.message || 'Si è verificato un errore durante il salvataggio.');
@@ -389,6 +412,59 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
               </div>
             </div>
 
+            {/* Spotify Playlist */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-slate-400">Playlist Spotify</label>
+                {spotifyPlaylistName && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSpotifyPlaylistId(undefined);
+                      setSpotifyPlaylistName(undefined);
+                      setSpotifyPlaylistImage(undefined);
+                      setSpotifyPlaylistUrl(undefined);
+                    }}
+                    className="text-xs text-slate-500 hover:text-red-400 transition-colors"
+                  >
+                    Rimuovi
+                  </button>
+                )}
+              </div>
+
+              {spotifyPlaylistName ? (
+                <div className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                  {spotifyPlaylistImage && (
+                    <img
+                      src={spotifyPlaylistImage}
+                      alt={spotifyPlaylistName}
+                      className="w-12 h-12 rounded"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-white truncate">{spotifyPlaylistName}</p>
+                    <a
+                      href={spotifyPlaylistUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-green-500 hover:text-green-400 truncate"
+                    >
+                      Ascolta su Spotify →
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsSpotifyPickerOpen(true)}
+                  className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md transition-colors flex items-center justify-center gap-2"
+                >
+                  <Music className="w-4 h-4" />
+                  Aggiungi Playlist
+                </button>
+              )}
+            </div>
+
             {event && (
               <div className="pt-4 border-t border-slate-700">
                 <h3 className="text-sm font-medium text-slate-400 mb-3">Partecipanti</h3>
@@ -518,6 +594,22 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
           </div>
         </form>
       </div>
+
+      {/* Spotify Playlist Picker Modal */}
+      <SpotifyPlaylistPicker
+        isOpen={isSpotifyPickerOpen}
+        onClose={() => setIsSpotifyPickerOpen(false)}
+        onSelect={(playlist) => {
+          setSpotifyPlaylistId(playlist.id);
+          setSpotifyPlaylistName(playlist.name);
+          setSpotifyPlaylistUrl(playlist.url);
+          setSpotifyPlaylistImage(playlist.image);
+        }}
+        spotifyToken={spotifyToken}
+        onLoginRequired={() => {
+          window.location.href = getSpotifyAuthUrl();
+        }}
+      />
     </div>
   );
 };

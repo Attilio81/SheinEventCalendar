@@ -342,6 +342,10 @@ const App: React.FC = () => {
             location: eventToSave.location,
             description: eventToSave.description,
             color: eventToSave.color,
+            spotify_playlist_id: eventToSave.spotify_playlist_id,
+            spotify_playlist_url: eventToSave.spotify_playlist_url,
+            spotify_playlist_name: eventToSave.spotify_playlist_name,
+            spotify_playlist_image: eventToSave.spotify_playlist_image,
           })
           .eq('id', eventToSave.id);
 
@@ -357,6 +361,10 @@ const App: React.FC = () => {
             location: eventToSave.location,
             description: eventToSave.description,
             color: eventToSave.color,
+            spotify_playlist_id: eventToSave.spotify_playlist_id,
+            spotify_playlist_url: eventToSave.spotify_playlist_url,
+            spotify_playlist_name: eventToSave.spotify_playlist_name,
+            spotify_playlist_image: eventToSave.spotify_playlist_image,
             user_id: user.id
           });
 
