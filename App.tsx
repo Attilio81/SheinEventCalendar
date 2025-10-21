@@ -4,6 +4,7 @@ import Header from './components/Header';
 import Calendar from './components/Calendar';
 import WeekView from './components/WeekView';
 import DayView from './components/DayView';
+import AgendaView from './components/AgendaView';
 import EventModal from './components/EventModal';
 import DayEventsModal from './components/DayEventsModal';
 import UpcomingEvents from './components/UpcomingEvents';
@@ -17,7 +18,7 @@ import { formatDateToYYYYMMDD } from './utils/dateUtils';
 import { requestNotificationPermission, sendPushNotification } from './utils/pushNotifications';
 import { generateICS, downloadICS } from './utils/icsGenerator';
 
-type View = 'month' | 'week' | 'day';
+type View = 'month' | 'week' | 'day' | 'agenda';
 
 const App: React.FC = () => {
   const { session, user } = useAuth();
@@ -492,6 +493,12 @@ const App: React.FC = () => {
             events={getEventsForDay(currentDate)}
             onEventClick={openModalForExistingEvent}
           />;
+      case 'agenda':
+        return <AgendaView
+          currentDate={currentDate}
+          events={filteredEvents}
+          onEventClick={openModalForExistingEvent}
+        />;
       default:
         return null;
     }
@@ -499,8 +506,8 @@ const App: React.FC = () => {
 
   const ViewSwitcher: React.FC = () => (
     <div className="flex flex-col sm:flex-row justify-center items-center mb-4 gap-2">
-      <div className="flex items-center bg-slate-800 rounded-lg p-1 space-x-1">
-        {(['month', 'week', 'day'] as const).map(viewName => (
+      <div className="flex items-center bg-slate-800 rounded-lg p-1 space-x-1 flex-wrap justify-center">
+        {(['month', 'week', 'day', 'agenda'] as const).map(viewName => (
           <button
             key={viewName}
             onClick={() => setView(viewName)}
@@ -510,7 +517,7 @@ const App: React.FC = () => {
                 : 'text-slate-300 hover:bg-slate-700'
             }`}
           >
-            {viewName === 'month' ? 'Mese' : viewName === 'week' ? 'Settimana' : 'Giorno'}
+            {viewName === 'month' ? 'Mese' : viewName === 'week' ? 'Settimana' : viewName === 'day' ? 'Giorno' : 'Agenda'}
           </button>
         ))}
       </div>
