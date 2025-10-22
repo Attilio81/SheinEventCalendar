@@ -343,7 +343,7 @@ const App: React.FC = () => {
             start_date: eventToSave.startDate,
             end_date: eventToSave.endDate,
             location: eventToSave.location,
-            description: eventToSave.description,
+            description: eventToSave.description || null,
             color: eventToSave.color,
             ticket_url: eventToSave.ticketUrl || null,
           })
@@ -359,7 +359,7 @@ const App: React.FC = () => {
             start_date: eventToSave.startDate,
             end_date: eventToSave.endDate,
             location: eventToSave.location,
-            description: eventToSave.description,
+            description: eventToSave.description || null,
             color: eventToSave.color,
             ticket_url: eventToSave.ticketUrl || null,
             user_id: user.id
