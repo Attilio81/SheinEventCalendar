@@ -41,6 +41,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
 
   useEffect(() => {
     if (event) {
+      console.log('Loading event into modal:', event);
       setTitle(event.title);
       setStartDate(event.startDate);
       setEndDate(event.endDate);
@@ -48,6 +49,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
       setDescription(event.description || '');
       setColor(event.color || 'blue');
       setTicketUrl(event.ticketUrl || '');
+      console.log('Event loaded - description:', event.description, 'ticketUrl:', event.ticketUrl);
       loadParticipants(event.id);
 
       // Set up real-time subscription for participants
