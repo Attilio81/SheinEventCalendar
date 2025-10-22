@@ -82,7 +82,7 @@ const Calendar: React.FC<CalendarProps> = ({ currentDate, events, onDateClick, o
               <span className={`text-sm font-semibold self-end ${isToday(d.day, d.isCurrentMonth) ? 'text-red-500 font-bold' : 'text-slate-300'} ${!d.isCurrentMonth ? 'text-slate-600' : ''}`}>
                 {d.day}
               </span>
-              <div className="mt-1 space-y-1 overflow-y-auto">
+              <div className="mt-1 space-y-1 overflow-hidden">
                 {dayEvents.map(event => (
                   <div
                     key={event.id}
