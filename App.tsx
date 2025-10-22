@@ -345,7 +345,7 @@ const App: React.FC = () => {
             location: eventToSave.location,
             description: eventToSave.description,
             color: eventToSave.color,
-            ticket_url: eventToSave.ticketUrl,
+            ticket_url: eventToSave.ticketUrl || null,
           })
           .eq('id', eventToSave.id);
 
@@ -361,7 +361,7 @@ const App: React.FC = () => {
             location: eventToSave.location,
             description: eventToSave.description,
             color: eventToSave.color,
-            ticket_url: eventToSave.ticketUrl,
+            ticket_url: eventToSave.ticketUrl || null,
             user_id: user.id
           });
 
