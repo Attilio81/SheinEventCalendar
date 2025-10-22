@@ -228,7 +228,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
     setIsSaving(true);
     setSaveError(null);
     try {
-      await onSave({
+      const eventData = {
         id: event?.id,
         title,
         startDate,
@@ -237,8 +237,12 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
         description,
         color,
         ticketUrl
-      });
+      };
+      console.log('Saving event:', eventData);
+      await onSave(eventData);
+      console.log('Event saved successfully');
     } catch (error: any) {
+      console.error('Save error:', error);
       setSaveError(error.message || 'Si è verificato un errore durante il salvataggio.');
     } finally {
       setIsSaving(false);
