@@ -38,10 +38,12 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
   const [myParticipation, setMyParticipation] = useState<EventParticipant | null>(null);
   const [isLoadingParticipants, setIsLoadingParticipants] = useState(false);
 
+  const [ownerName, setOwnerName] = useState<string | null>(null);
+  const isOwner = event && user && event.user_id === user.id;
+
 
   useEffect(() => {
     if (event) {
-      console.log('Loading event into modal:', event);
       setTitle(event.title);
       setStartDate(event.startDate);
       setEndDate(event.endDate);
@@ -49,7 +51,12 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
       setDescription(event.description || '');
       setColor(event.color || 'blue');
       setTicketUrl(event.ticketUrl || '');
-      console.log('Event loaded - description:', event.description, 'ticketUrl:', event.ticketUrl);
+
+      // Load owner name
+      if (event.user_id) {
+        loadOwnerName(event.user_id);
+      }
+
       loadParticipants(event.id);
 
       // Set up real-time subscription for participants
@@ -76,11 +83,33 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
       setTicketUrl('');
       setParticipants([]);
       setMyParticipation(null);
+      setOwnerName(null);
     }
     setSuggestions([]);
     setIsSuggestionsOpen(false);
     setIsUserTyping(false); // Reset typing state when modal opens
   }, [event, selectedDate]);
+
+  const loadOwnerName = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('nickname')
+        .eq('id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading owner name:', error);
+        return;
+      }
+
+      if (data) {
+        setOwnerName(data.nickname);
+      }
+    } catch (error) {
+      console.error('Error loading owner name:', error);
+    }
+  };
 
   const loadParticipants = async (eventId: string) => {
     setIsLoadingParticipants(true);
@@ -230,7 +259,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
     setIsSaving(true);
     setSaveError(null);
     try {
-      const eventData = {
+      await onSave({
         id: event?.id,
         title,
         startDate,
@@ -239,12 +268,8 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
         description,
         color,
         ticketUrl
-      };
-      console.log('Saving event:', eventData);
-      await onSave(eventData);
-      console.log('Event saved successfully');
+      });
     } catch (error: any) {
-      console.error('Save error:', error);
       setSaveError(error.message || 'Si è verificato un errore durante il salvataggio.');
     } finally {
       setIsSaving(false);
@@ -281,21 +306,32 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
       <div className="bg-slate-900 border border-slate-700 rounded-lg shadow-2xl shadow-red-900/20 w-full max-w-lg max-h-[90vh] overflow-y-auto transform transition-all">
         <div className="flex items-center justify-between p-4 border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold text-white">{event ? 'Modifica Evento' : 'Nuovo Evento'}</h2>
-            {event && ticketUrl && (
-              <a
-                href={ticketUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors flex items-center gap-2"
-                title="Acquista biglietti"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M7 4V2m10 2v2m3.356 2.746l1.414-1.414M2.646 2.646l1.414 1.414M2 12a10 10 0 1020 0 10 10 0 00-20 0zm7-4h6v6h-6V8z"/>
-                </svg>
-                Biglietti
-              </a>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-bold text-white">{event ? 'Modifica Evento' : 'Nuovo Evento'}</h2>
+              {event && ticketUrl && (
+                <a
+                  href={ticketUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors flex items-center gap-2"
+                  title="Acquista biglietti"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M7 4V2m10 2v2m3.356 2.746l1.414-1.414M2.646 2.646l1.414 1.414M2 12a10 10 0 1020 0 10 10 0 00-20 0zm7-4h6v6h-6V8z"/>
+                  </svg>
+                  Biglietti
+                </a>
+              )}
+            </div>
+            {event && ownerName && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400">Organizzatore:</span>
+                <span className="text-xs font-semibold text-slate-300">{ownerName}</span>
+                {!isOwner && (
+                  <span className="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded-full">Visualizzazione</span>
+                )}
+              </div>
             )}
           </div>
           <button onClick={onClose} className="p-2 rounded-full text-slate-400 hover:bg-slate-700 hover:text-white">
@@ -306,7 +342,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
           <div className="p-6 space-y-4">
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-slate-400 mb-1">Titolo</label>
-              <input type="text" id="title" value={title} onChange={e => setTitle(e.target.value)} required className="w-full px-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"/>
+              <input type="text" id="title" value={title} onChange={e => setTitle(e.target.value)} required disabled={!isOwner} className={`w-full px-3 py-2 border rounded-md shadow-sm ${isOwner ? 'bg-slate-800 border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500' : 'bg-slate-800/50 border-slate-700 text-slate-500 cursor-not-allowed'}`}/>
             </div>
             <div className="flex space-x-4">
               <div className="flex-1">
@@ -317,7 +353,8 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
                   value={startDate}
                   onChange={e => setStartDate(e.target.value)}
                   required
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 [-webkit-appearance:none]"
+                  disabled={!isOwner}
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm [-webkit-appearance:none] ${isOwner ? 'bg-slate-800 border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500' : 'bg-slate-800/50 border-slate-700 text-slate-500 cursor-not-allowed'}`}
                 />
               </div>
               <div className="flex-1">
@@ -328,7 +365,8 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
                   value={endDate}
                   onChange={e => setEndDate(e.target.value)}
                   required
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 [-webkit-appearance:none]"
+                  disabled={!isOwner}
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm [-webkit-appearance:none] ${isOwner ? 'bg-slate-800 border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500' : 'bg-slate-800/50 border-slate-700 text-slate-500 cursor-not-allowed'}`}
                 />
               </div>
             </div>
@@ -350,7 +388,8 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
                     onFocus={() => setIsUserTyping(true)}
                     autoComplete="off"
                     required
-                    className="w-full pl-10 pr-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    disabled={!isOwner}
+                    className={`w-full pl-10 pr-3 py-2 border rounded-md shadow-sm ${isOwner ? 'bg-slate-800 border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500' : 'bg-slate-800/50 border-slate-700 text-slate-500 cursor-not-allowed'}`}
                   />
                  </div>
                  {event && location && (
@@ -383,7 +422,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
             </div>
             <div>
               <label htmlFor="description" className="block text-sm font-medium text-slate-400 mb-1">Descrizione</label>
-              <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"/>
+              <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} rows={3} disabled={!isOwner} className={`w-full px-3 py-2 border rounded-md shadow-sm ${isOwner ? 'bg-slate-800 border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500' : 'bg-slate-800/50 border-slate-700 text-slate-500 cursor-not-allowed'}`}/>
             </div>
 
             <div>
@@ -394,7 +433,8 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
                 value={ticketUrl}
                 onChange={e => setTicketUrl(e.target.value)}
                 placeholder="https://example.com/tickets"
-                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                disabled={!isOwner}
+                className={`w-full px-3 py-2 border rounded-md shadow-sm ${isOwner ? 'bg-slate-800 border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500' : 'bg-slate-800/50 border-slate-700 text-slate-500 cursor-not-allowed'}`}
               />
             </div>
 
@@ -442,7 +482,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
 
           <div className="flex items-center justify-between p-4 bg-black/50 rounded-b-lg">
             <div>
-              {event && (
+              {event && isOwner && (
                 <button
                   type="button"
                   onClick={handleDelete}
@@ -465,16 +505,22 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
                <button type="button" onClick={onClose} disabled={isDeleting || isSaving} className="px-4 py-2 text-sm font-semibold text-slate-300 bg-transparent border border-slate-600 rounded-md hover:bg-slate-800 hover:text-white disabled:opacity-50">
                 Annulla
               </button>
-              <button type="submit" disabled={isDeleting || isSaving} className="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md shadow-lg shadow-red-600/20 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-red-500 disabled:opacity-50 disabled:cursor-wait">
-                {isSaving ? (
-                    <svg className="animate-spin h-5 w-5 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  ) : (
-                    'Salva'
-                )}
-              </button>
+              {isOwner ? (
+                <button type="submit" disabled={isDeleting || isSaving} className="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md shadow-lg shadow-red-600/20 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-red-500 disabled:opacity-50 disabled:cursor-wait">
+                  {isSaving ? (
+                      <svg className="animate-spin h-5 w-5 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    ) : (
+                      'Salva'
+                  )}
+                </button>
+              ) : (
+                <button type="button" disabled className="px-4 py-2 text-sm font-semibold text-slate-500 bg-slate-700/50 rounded-md cursor-not-allowed opacity-50">
+                  Visualizzazione
+                </button>
+              )}
             </div>
           </div>
         </form>
