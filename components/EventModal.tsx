@@ -420,83 +420,6 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
                 ))}
               </div>
             </div>
-
-            {event && (
-              <div className="pt-4 border-t border-slate-700">
-                <h3 className="text-sm font-medium text-slate-400 mb-3">Partecipanti</h3>
-
-                {/* My participation buttons */}
-                <div className="mb-4">
-                  <p className="text-xs text-slate-500 mb-2">La tua partecipazione:</p>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleParticipationChange('yes')}
-                      className={`flex-1 px-3 py-2 text-sm font-semibold rounded-md transition-colors ${
-                        myParticipation?.status === 'yes'
-                          ? 'bg-green-600 text-white'
-                          : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                      }`}
-                    >
-                      ✓ Partecipo
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleParticipationChange('maybe')}
-                      className={`flex-1 px-3 py-2 text-sm font-semibold rounded-md transition-colors ${
-                        myParticipation?.status === 'maybe'
-                          ? 'bg-yellow-600 text-white'
-                          : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                      }`}
-                    >
-                      ? Forse
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleParticipationChange('no')}
-                      className={`flex-1 px-3 py-2 text-sm font-semibold rounded-md transition-colors ${
-                        myParticipation?.status === 'no'
-                          ? 'bg-red-600 text-white'
-                          : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                      }`}
-                    >
-                      ✗ Non partecipo
-                    </button>
-                  </div>
-                </div>
-
-                {/* Participants list */}
-                {isLoadingParticipants ? (
-                  <p className="text-sm text-slate-500">Caricamento partecipanti...</p>
-                ) : participants.length > 0 ? (
-                  <div className="space-y-2">
-                    {participants.map((participant) => (
-                      <div
-                        key={participant.id}
-                        className="flex items-center justify-between px-3 py-2 bg-slate-800 rounded-md"
-                      >
-                        <span className="text-sm text-white">
-                          {participant.profile?.nickname || 'Utente senza nickname'}
-                        </span>
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            participant.status === 'yes'
-                              ? 'bg-green-900/50 text-green-300'
-                              : participant.status === 'maybe'
-                              ? 'bg-yellow-900/50 text-yellow-300'
-                              : 'bg-red-900/50 text-red-300'
-                          }`}
-                        >
-                          {participant.status === 'yes' ? 'Partecipa' : participant.status === 'maybe' ? 'Forse' : 'Non partecipa'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-500">Nessun partecipante ancora</p>
-                )}
-              </div>
-            )}
           </div>
           
           {saveError && (
@@ -549,6 +472,84 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
             </div>
           </div>
         </form>
+
+        {/* Participants Section - Below the form */}
+        {event && (
+          <div className="p-6 border-t border-slate-700 bg-slate-950">
+            <h3 className="text-sm font-medium text-slate-400 mb-3">Partecipanti</h3>
+
+            {/* My participation buttons */}
+            <div className="mb-4">
+              <p className="text-xs text-slate-500 mb-2">La tua partecipazione:</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleParticipationChange('yes')}
+                  className={`flex-1 px-3 py-2 text-sm font-semibold rounded-md transition-colors ${
+                    myParticipation?.status === 'yes'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  }`}
+                >
+                  ✓ Partecipo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleParticipationChange('maybe')}
+                  className={`flex-1 px-3 py-2 text-sm font-semibold rounded-md transition-colors ${
+                    myParticipation?.status === 'maybe'
+                      ? 'bg-yellow-600 text-white'
+                      : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  }`}
+                >
+                  ? Forse
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleParticipationChange('no')}
+                  className={`flex-1 px-3 py-2 text-sm font-semibold rounded-md transition-colors ${
+                    myParticipation?.status === 'no'
+                      ? 'bg-red-600 text-white'
+                      : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  }`}
+                >
+                  ✗ Non partecipo
+                </button>
+              </div>
+            </div>
+
+            {/* Participants list */}
+            {isLoadingParticipants ? (
+              <p className="text-sm text-slate-500">Caricamento partecipanti...</p>
+            ) : participants.length > 0 ? (
+              <div className="space-y-2">
+                {participants.map((participant) => (
+                  <div
+                    key={participant.id}
+                    className="flex items-center justify-between px-3 py-2 bg-slate-800 rounded-md"
+                  >
+                    <span className="text-sm text-white">
+                      {participant.profile?.nickname || 'Utente senza nickname'}
+                    </span>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        participant.status === 'yes'
+                          ? 'bg-green-900/50 text-green-300'
+                          : participant.status === 'maybe'
+                          ? 'bg-yellow-900/50 text-yellow-300'
+                          : 'bg-red-900/50 text-red-300'
+                      }`}
+                    >
+                      {participant.status === 'yes' ? 'Partecipa' : participant.status === 'maybe' ? 'Forse' : 'Non partecipa'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500">Nessun partecipante ancora</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
