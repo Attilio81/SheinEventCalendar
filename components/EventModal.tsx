@@ -21,6 +21,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [color, setColor] = useState('blue');
+  const [ticketUrl, setTicketUrl] = useState('');
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -46,6 +47,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
       setLocation(event.location);
       setDescription(event.description || '');
       setColor(event.color || 'blue');
+      setTicketUrl(event.ticketUrl || '');
       loadParticipants(event.id);
 
       // Set up real-time subscription for participants
@@ -69,6 +71,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
       setEndDate(selectedDate);
       setLocation('');
       setDescription('');
+      setTicketUrl('');
       setParticipants([]);
       setMyParticipation(null);
     }
@@ -232,7 +235,8 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
         endDate,
         location,
         description,
-        color
+        color,
+        ticketUrl
       });
     } catch (error: any) {
       setSaveError(error.message || 'Si è verificato un errore durante il salvataggio.');
@@ -271,7 +275,23 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
       <div className="bg-slate-900 border border-slate-700 rounded-lg shadow-2xl shadow-red-900/20 w-full max-w-lg max-h-[90vh] overflow-y-auto transform transition-all">
         <div className="flex items-center justify-between p-4 border-b border-slate-800">
-          <h2 className="text-xl font-bold text-white">{event ? 'Modifica Evento' : 'Nuovo Evento'}</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold text-white">{event ? 'Modifica Evento' : 'Nuovo Evento'}</h2>
+            {event && ticketUrl && (
+              <a
+                href={ticketUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors flex items-center gap-2"
+                title="Acquista biglietti"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M7 4V2m10 2v2m3.356 2.746l1.414-1.414M2.646 2.646l1.414 1.414M2 12a10 10 0 1020 0 10 10 0 00-20 0zm7-4h6v6h-6V8z"/>
+                </svg>
+                Biglietti
+              </a>
+            )}
+          </div>
           <button onClick={onClose} className="p-2 rounded-full text-slate-400 hover:bg-slate-700 hover:text-white">
             <CloseIcon className="w-6 h-6" />
           </button>
@@ -358,6 +378,18 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
             <div>
               <label htmlFor="description" className="block text-sm font-medium text-slate-400 mb-1">Descrizione</label>
               <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"/>
+            </div>
+
+            <div>
+              <label htmlFor="ticketUrl" className="block text-sm font-medium text-slate-400 mb-1">Link Acquisto Biglietti</label>
+              <input
+                type="url"
+                id="ticketUrl"
+                value={ticketUrl}
+                onChange={e => setTicketUrl(e.target.value)}
+                placeholder="https://example.com/tickets"
+                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              />
             </div>
 
             <div>

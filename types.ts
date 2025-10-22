@@ -7,6 +7,7 @@ export interface CalendarEvent {
   description?: string;
   color: string;
   user_id?: string;
+  ticketUrl?: string; // Link per l'acquisto dei biglietti
 }
 
 export interface UserProfile {

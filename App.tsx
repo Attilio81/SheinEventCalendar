@@ -58,7 +58,8 @@ const App: React.FC = () => {
         location: event.location,
         description: event.description,
         color: event.color,
-        user_id: event.user_id
+        user_id: event.user_id,
+        ticketUrl: event.ticket_url
       }));
       setEvents(mappedEvents);
     }
@@ -157,6 +158,7 @@ const App: React.FC = () => {
                 description: newRecord.description,
                 color: newRecord.color,
                 user_id: newRecord.user_id,
+                ticketUrl: newRecord.ticket_url,
               };
               setEvents(currentEvents =>
                 currentEvents.some(e => e.id === newEvent.id)
@@ -174,6 +176,7 @@ const App: React.FC = () => {
                 description: updatedRecord.description,
                 color: updatedRecord.color,
                 user_id: updatedRecord.user_id,
+                ticketUrl: updatedRecord.ticket_url,
               };
               setEvents(currentEvents =>
                 currentEvents.map(e => (e.id === updatedEvent.id ? updatedEvent : e))
@@ -342,6 +345,7 @@ const App: React.FC = () => {
             location: eventToSave.location,
             description: eventToSave.description,
             color: eventToSave.color,
+            ticket_url: eventToSave.ticketUrl,
           })
           .eq('id', eventToSave.id);
 
@@ -357,6 +361,7 @@ const App: React.FC = () => {
             location: eventToSave.location,
             description: eventToSave.description,
             color: eventToSave.color,
+            ticket_url: eventToSave.ticketUrl,
             user_id: user.id
           });
 
