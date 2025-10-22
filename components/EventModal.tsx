@@ -383,7 +383,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
             <div>
               <label htmlFor="ticketUrl" className="block text-sm font-medium text-slate-400 mb-1">Link Acquisto Biglietti</label>
               <input
-                type="url"
+                type="text"
                 id="ticketUrl"
                 value={ticketUrl}
                 onChange={e => setTicketUrl(e.target.value)}
