@@ -564,13 +564,18 @@ export async function scrapeAndSaveTechnoEvents(): Promise<number> {
 
     // Step 4: Insert fresh events to Supabase
     console.log(`📤 Inserting ${eventsToInsert.length} fresh events...`);
+
+    // Use upsert instead of insert to handle potential conflicts
+    // This will update if the event already exists (by unique constraint on source + source_url)
     const { data, error } = await supabase
       .from('public_techno_events')
-      .insert(eventsToInsert);
+      .upsert(eventsToInsert, {
+        onConflict: 'source,source_url'
+      });
 
     if (error) {
       console.error('❌ Error saving events to Supabase:', error);
-      console.log('💡 Tip: Make sure RLS policies allow INSERT for authenticated users');
+      console.log('💡 Tip: Make sure RLS policies allow INSERT/UPDATE for authenticated users');
     } else {
       console.log(`✅ Successfully refreshed ${eventsToInsert.length} techno events`);
     }
