@@ -8,7 +8,13 @@
       "Bash(npm install:*)",
       "Bash(npx tailwindcss init:*)",
       "Bash(npm uninstall:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(git rev-list:*)",
+      "Bash(git pull:*)",
+      "WebSearch",
+      "WebFetch(domain:www.eventbrite.com)",
+      "WebFetch(domain:xceed.me)",
+      "WebFetch(domain:www.eventdestination.net)"
     ],
     "deny": [],
     "ask": []

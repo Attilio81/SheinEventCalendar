@@ -11,6 +11,7 @@ import UpcomingEvents from './components/UpcomingEvents';
 import BottomNavBar from './components/BottomNavBar';
 import ProfileModal from './components/ProfileModal';
 import NotificationsModal from './components/NotificationsModal';
+import TechnoEventsAgenda from './components/TechnoEventsAgenda';
 import { supabase } from './lib/supabaseClient';
 import { useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
@@ -19,7 +20,7 @@ import { requestNotificationPermission, sendPushNotification } from './utils/pus
 import { generateICS, downloadICS } from './utils/icsGenerator';
 import { searchEvents } from './utils/searchUtils';
 
-type View = 'month' | 'week' | 'day' | 'agenda';
+type View = 'month' | 'week' | 'day' | 'agenda' | 'techno';
 
 const App: React.FC = () => {
   const { session, user } = useAuth();
@@ -515,6 +516,8 @@ const App: React.FC = () => {
           events={filteredEvents}
           onEventClick={openModalForExistingEvent}
         />;
+      case 'techno':
+        return <TechnoEventsAgenda />;
       default:
         return null;
     }
@@ -523,7 +526,7 @@ const App: React.FC = () => {
   const ViewSwitcher: React.FC = () => (
     <div className="flex flex-col sm:flex-row justify-center items-center mb-4 gap-2">
       <div className="flex items-center bg-slate-800 rounded-lg p-1 space-x-1 flex-wrap justify-center">
-        {(['month', 'week', 'day', 'agenda'] as const).map(viewName => (
+        {(['month', 'week', 'day', 'agenda', 'techno'] as const).map(viewName => (
           <button
             key={viewName}
             onClick={() => setView(viewName)}
@@ -533,21 +536,23 @@ const App: React.FC = () => {
                 : 'text-slate-300 hover:bg-slate-700'
             }`}
           >
-            {viewName === 'month' ? 'Mese' : viewName === 'week' ? 'Settimana' : viewName === 'day' ? 'Giorno' : 'Agenda'}
+            {viewName === 'month' ? 'Mese' : viewName === 'week' ? 'Settimana' : viewName === 'day' ? 'Giorno' : viewName === 'agenda' ? 'Agenda' : '🎵 Techno'}
           </button>
         ))}
       </div>
-      <button
-        onClick={() => setShowMyEventsOnly(!showMyEventsOnly)}
-        className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
-          showMyEventsOnly
-            ? 'bg-green-600 text-white'
-            : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-        }`}
-        title={showMyEventsOnly ? 'Mostra tutti gli eventi' : 'Mostra solo i miei eventi'}
-      >
-        {showMyEventsOnly ? '✓ I miei eventi' : 'Tutti gli eventi'}
-      </button>
+      {view !== 'techno' && (
+        <button
+          onClick={() => setShowMyEventsOnly(!showMyEventsOnly)}
+          className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
+            showMyEventsOnly
+              ? 'bg-green-600 text-white'
+              : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+          }`}
+          title={showMyEventsOnly ? 'Mostra tutti gli eventi' : 'Mostra solo i miei eventi'}
+        >
+          {showMyEventsOnly ? '✓ I miei eventi' : 'Tutti gli eventi'}
+        </button>
+      )}
     </div>
   );
 
