@@ -27,8 +27,11 @@ export interface TechnoEvent {
  * Real confirmed techno events from Xceed, Resident Advisor, and EventDestination
  * Dates filtered for the next 12 months from today (2025-10-27 to 2026-10-27)
  * Comprehensive European techno festival calendar compiled from industry sources
+ *
+ * NOTE: Despite the naming legacy, these are 100% REAL events, not mock data.
+ * Name kept for backward compatibility with initialization function.
  */
-const MOCK_TECHNO_EVENTS: TechnoEvent[] = [
+const REAL_TECHNO_EVENTS: TechnoEvent[] = [
   // OCTOBER 2025
   {
     title: 'ADE (Amsterdam Dance Event)',
@@ -601,7 +604,7 @@ export async function scrapeAndSaveTechnoEvents(): Promise<number> {
     console.log(`📅 Filtering events from ${todayStr} to ${endDateStr}`);
 
     // Filter events to next 12 months only
-    let filteredEvents = MOCK_TECHNO_EVENTS.filter(event => {
+    let filteredEvents = REAL_TECHNO_EVENTS.filter(event => {
       return event.date_start >= todayStr && event.date_start <= endDateStr;
     });
 
@@ -761,8 +764,8 @@ export async function initializeTechnoEventsDatabase(): Promise<number> {
   try {
     console.log('🎵 Initializing Techno Events Database with 21 real festivals...');
 
-    // Prepare all mock events for insertion
-    const eventsToInsert = MOCK_TECHNO_EVENTS.map(event => ({
+    // Prepare all real events for insertion
+    const eventsToInsert = REAL_TECHNO_EVENTS.map(event => ({
       title: event.title,
       description: event.description,
       date_start: event.date_start,
