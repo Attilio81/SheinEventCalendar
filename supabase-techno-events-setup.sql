@@ -46,16 +46,31 @@ CREATE TABLE IF NOT EXISTS public_techno_events (
 -- Step 2: Enable RLS on public_techno_events
 ALTER TABLE public_techno_events ENABLE ROW LEVEL SECURITY;
 
--- Step 3: Create RLS Policies (Read-only for authenticated users)
+-- Step 3: Create RLS Policies
 
 -- Drop existing policies if any
 DROP POLICY IF EXISTS "Anyone can view public techno events" ON public_techno_events;
+DROP POLICY IF EXISTS "Authenticated users can insert public techno events" ON public_techno_events;
+DROP POLICY IF EXISTS "Authenticated users can update public techno events" ON public_techno_events;
 
--- Policy: All authenticated users can view public techno events (read-only)
+-- Policy 1: All authenticated users can VIEW public techno events
 CREATE POLICY "Anyone can view public techno events"
 ON public_techno_events FOR SELECT
 TO authenticated
 USING (true);
+
+-- Policy 2: All authenticated users can INSERT public techno events
+CREATE POLICY "Authenticated users can insert public techno events"
+ON public_techno_events FOR INSERT
+TO authenticated
+WITH CHECK (true);
+
+-- Policy 3: All authenticated users can UPDATE public techno events
+CREATE POLICY "Authenticated users can update public techno events"
+ON public_techno_events FOR UPDATE
+TO authenticated
+USING (true)
+WITH CHECK (true);
 
 -- Step 4: Create indexes for better performance
 CREATE INDEX IF NOT EXISTS public_techno_events_date_start_idx ON public_techno_events(date_start);
