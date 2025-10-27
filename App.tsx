@@ -549,6 +549,17 @@ const App: React.FC = () => {
             {showMyEventsOnly ? '✓ I miei eventi' : 'Tutti gli eventi'}
           </button>
           <button
+            onClick={() => setView('month')}
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
+              view === 'month'
+                ? 'bg-red-600 text-white'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+            title="Visualizza calendario mensile"
+          >
+            📅 Calendario
+          </button>
+          <button
             onClick={() => setView('agenda')}
             className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
               view === 'agenda'
