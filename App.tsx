@@ -38,6 +38,7 @@ const App: React.FC = () => {
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
+
   const getEvents = useCallback(async () => {
     // Fetches all events. RLS policies on Supabase will determine what is returned.
     // With the recommended change, this will be all events for authenticated users.
@@ -333,6 +334,7 @@ const App: React.FC = () => {
         console.error("User not authenticated to save event.");
         throw new Error("User not authenticated to save event.");
     }
+    
     try {
       if (eventToSave.id) {
         // Update existing event - RLS policy will enforce ownership

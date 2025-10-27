@@ -39,7 +39,8 @@ const EventModal: React.FC<EventModalProps> = ({ event, selectedDate, onClose, o
   const [isLoadingParticipants, setIsLoadingParticipants] = useState(false);
 
   const [ownerName, setOwnerName] = useState<string | null>(null);
-  const isOwner = event && user && event.user_id === user.id;
+  // For new events (event is null), user can edit. For existing events, only owner can edit.
+  const isOwner = !event || (event && user && event.user_id === user.id);
 
 
   useEffect(() => {
