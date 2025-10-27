@@ -15,6 +15,7 @@ const TechnoEventsAgenda: React.FC<TechnoEventsAgendaProps> = ({ onEventClick })
   const [selectedCity, setSelectedCity] = useState<string>('all');
   const [error, setError] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(true);
 
   // Dynamically get unique cities from events
   const cities = ['all', ...Array.from(
@@ -83,63 +84,78 @@ const TechnoEventsAgenda: React.FC<TechnoEventsAgendaProps> = ({ onEventClick })
 
   return (
     <div className="bg-transparent flex flex-col h-full">
-      {/* Header con Filtri */}
+      {/* Header con Filtri Collapsibili */}
       <div className="bg-slate-800 rounded-lg p-4 mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-white mb-1">🎵 Techno Events</h2>
-          <p className="text-slate-400 text-sm">Festival e serate techno in giro</p>
+        {/* Header Title Row with Collapse Button */}
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-1">🎵 Techno Events</h2>
+            <p className="text-slate-400 text-sm">Festival e serate techno in giro</p>
+          </div>
+          <button
+            onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+            className="text-slate-400 hover:text-white transition-colors p-2"
+            title={isFiltersOpen ? 'Chiudi filtri' : 'Apri filtri'}
+          >
+            {isFiltersOpen ? '▼' : '▶'}
+          </button>
         </div>
 
-        {error && (
-          <div className="bg-red-900/30 border border-red-700 text-red-200 px-3 py-2 rounded mb-4">
-            {error}
-          </div>
-        )}
+        {/* Collapsible Filters Section */}
+        {isFiltersOpen && (
+          <>
+            {error && (
+              <div className="bg-red-900/30 border border-red-700 text-red-200 px-3 py-2 rounded mb-4">
+                {error}
+              </div>
+            )}
 
-        {/* Initialize Database Button - shown only when database is completely empty */}
-        {events.length === 0 && (
-          <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4 mb-4">
-            <p className="text-slate-300 text-sm mb-3">
-              Nessun evento trovato. Vuoi popolare il database con 31 festival europei e club Turin?
+            {/* Initialize Database Button - shown only when database is completely empty */}
+            {events.length === 0 && (
+              <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4 mb-4">
+                <p className="text-slate-300 text-sm mb-3">
+                  Nessun evento trovato. Vuoi popolare il database con 31 festival europei e club Turin?
+                </p>
+                <button
+                  onClick={handleInitializeDatabase}
+                  disabled={isInitializing}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2 ${
+                    isInitializing
+                      ? 'bg-slate-600 text-slate-300 cursor-not-allowed'
+                      : 'bg-red-600 text-white hover:bg-red-700'
+                  }`}
+                >
+                  <span className={isInitializing ? 'animate-spin' : ''}>✨</span>
+                  {isInitializing ? 'Inizializzazione...' : 'Carica 31 Festival'}
+                </button>
+                <p className="text-slate-500 text-xs mt-2">
+                  Include: ADE, TIME WARP, AWAKENINGS, KAPPA, Audiodrome, Q35 Warehouse, e altri
+                </p>
+              </div>
+            )}
+
+            {/* City Filters */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {cities.map(city => (
+                <button
+                  key={city}
+                  onClick={() => setSelectedCity(city)}
+                  className={`px-3 py-1 rounded-full text-sm font-semibold transition-colors ${
+                    selectedCity === city
+                      ? 'bg-red-600 text-white'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  }`}
+                >
+                  {city === 'all' ? 'Tutti' : city}
+                </button>
+              ))}
+            </div>
+
+            <p className="text-slate-400 text-xs">
+              {filteredEvents.length} evento{filteredEvents.length !== 1 ? 'i' : ''}
             </p>
-            <button
-              onClick={handleInitializeDatabase}
-              disabled={isInitializing}
-              className={`px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2 ${
-                isInitializing
-                  ? 'bg-slate-600 text-slate-300 cursor-not-allowed'
-                  : 'bg-red-600 text-white hover:bg-red-700'
-              }`}
-            >
-              <span className={isInitializing ? 'animate-spin' : ''}>✨</span>
-              {isInitializing ? 'Inizializzazione...' : 'Carica 31 Festival'}
-            </button>
-            <p className="text-slate-500 text-xs mt-2">
-              Include: ADE, TIME WARP, AWAKENINGS, KAPPA, Audiodrome, Q35 Warehouse, e altri
-            </p>
-          </div>
+          </>
         )}
-
-        {/* City Filters */}
-        <div className="flex flex-wrap gap-2">
-          {cities.map(city => (
-            <button
-              key={city}
-              onClick={() => setSelectedCity(city)}
-              className={`px-3 py-1 rounded-full text-sm font-semibold transition-colors ${
-                selectedCity === city
-                  ? 'bg-red-600 text-white'
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-              }`}
-            >
-              {city === 'all' ? 'Tutti' : city}
-            </button>
-          ))}
-        </div>
-
-        <p className="text-slate-400 text-xs mt-3">
-          {filteredEvents.length} evento{filteredEvents.length !== 1 ? 'i' : ''}
-        </p>
       </div>
 
       {/* Events List */}
