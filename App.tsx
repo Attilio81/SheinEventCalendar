@@ -287,7 +287,7 @@ const App: React.FC = () => {
       } else if (view === 'week') {
         newDate.setDate(newDate.getDate() + 7);
       } else { // day
-        newDate.setDate(newDate.getDate() - 1);
+        newDate.setDate(newDate.getDate() + 1);
       }
       return newDate;
     });
