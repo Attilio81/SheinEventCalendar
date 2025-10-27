@@ -24,15 +24,15 @@ export interface TechnoEvent {
 }
 
 /**
- * Mock data for testing - Real festivals and events in 2025-2026
- * Dates are set from current date (2025-10-27) onwards
+ * Mock data for testing - Real festivals and events
+ * Dates are set for the next 12 months from today (2025-10-27 to 2026-10-27)
  */
 const MOCK_TECHNO_EVENTS: TechnoEvent[] = [
   {
     title: 'Kappa FuturFestival 2026',
     description: 'Italy\'s biggest electronic music festival with 30,000+ attendees',
-    date_start: '2026-05-10',
-    date_end: '2026-05-12',
+    date_start: '2026-05-09',
+    date_end: '2026-05-11',
     venue: 'Parco Dora',
     location: 'Turin',
     city: 'Turin',
@@ -59,8 +59,8 @@ const MOCK_TECHNO_EVENTS: TechnoEvent[] = [
   {
     title: 'Time Warp 2026',
     description: 'Germany\'s most important techno festival',
-    date_start: '2026-04-05',
-    date_end: '2026-04-06',
+    date_start: '2026-03-21',
+    date_end: '2026-03-22',
     venue: 'Maimarkt Gelande',
     location: 'Mannheim',
     city: 'Mannheim',
@@ -85,8 +85,8 @@ const MOCK_TECHNO_EVENTS: TechnoEvent[] = [
   {
     title: 'Awakenings Festival 2026',
     description: 'The world\'s biggest outdoor techno festival',
-    date_start: '2026-06-07',
-    date_end: '2026-06-08',
+    date_start: '2026-06-06',
+    date_end: '2026-06-07',
     venue: 'Spaarnwoude Park',
     location: 'Amsterdam',
     city: 'Amsterdam',
@@ -129,8 +129,8 @@ const MOCK_TECHNO_EVENTS: TechnoEvent[] = [
   {
     title: 'Decibel Open Air 2026',
     description: 'Florence\'s premier electronic music festival in Cascine Park',
-    date_start: '2026-09-13',
-    date_end: '2026-09-14',
+    date_start: '2026-09-12',
+    date_end: '2026-09-13',
     venue: 'Cascine Park',
     location: 'Florence',
     city: 'Florence',
@@ -154,8 +154,8 @@ const MOCK_TECHNO_EVENTS: TechnoEvent[] = [
   {
     title: 'Monegros Desert Festival 2026',
     description: 'Spain\'s legendary desert electronic music festival',
-    date_start: '2026-07-25',
-    date_end: '2026-07-26',
+    date_start: '2026-07-24',
+    date_end: '2026-07-25',
     venue: 'Desert of Monegros',
     location: 'Fraga',
     city: 'Barcelona',
@@ -179,7 +179,7 @@ const MOCK_TECHNO_EVENTS: TechnoEvent[] = [
   {
     title: 'Junction 2 London 2026',
     description: 'London\'s premier daytime techno festival in Boston Manor Park',
-    date_start: '2026-06-21',
+    date_start: '2026-06-20',
     venue: 'Boston Manor Park',
     location: 'London',
     city: 'London',
@@ -203,8 +203,8 @@ const MOCK_TECHNO_EVENTS: TechnoEvent[] = [
   {
     title: 'Sunwaves Festival 2026',
     description: 'Europe\'s biggest beach electronic music festival',
-    date_start: '2026-08-08',
-    date_end: '2026-08-10',
+    date_start: '2026-08-07',
+    date_end: '2026-08-09',
     venue: 'Costinesti Beach',
     location: 'Costinesti',
     city: 'Costinesti',
