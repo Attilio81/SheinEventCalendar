@@ -11,6 +11,7 @@ import UpcomingEvents from './components/UpcomingEvents';
 import BottomNavBar from './components/BottomNavBar';
 import ProfileModal from './components/ProfileModal';
 import NotificationsModal from './components/NotificationsModal';
+import TechnoEventsAgenda from './components/TechnoEventsAgenda';
 import { supabase } from './lib/supabaseClient';
 import { useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
@@ -19,7 +20,7 @@ import { requestNotificationPermission, sendPushNotification } from './utils/pus
 import { generateICS, downloadICS } from './utils/icsGenerator';
 import { searchEvents } from './utils/searchUtils';
 
-type View = 'month' | 'week' | 'day';
+type View = 'month' | 'week' | 'day' | 'agenda' | 'techno';
 
 const App: React.FC = () => {
   const { session, user } = useAuth();
@@ -509,6 +510,14 @@ const App: React.FC = () => {
             events={getEventsForDay(currentDate)}
             onEventClick={openModalForExistingEvent}
           />;
+      case 'agenda':
+        return <AgendaView
+          currentDate={currentDate}
+          events={filteredEvents}
+          onEventClick={openModalForExistingEvent}
+        />;
+      case 'techno':
+        return <TechnoEventsAgenda />;
       default:
         return null;
     }
@@ -526,8 +535,8 @@ const App: React.FC = () => {
         onSearchChange={setSearchTerm}
       />
       <main className="flex-1 flex flex-col overflow-y-auto p-4 md:p-6 space-y-6 pb-24">
-        {/* My Events Toggle */}
-        <div className="flex justify-center">
+        {/* Events View Switcher */}
+        <div className="flex justify-center gap-3 flex-wrap">
           <button
             onClick={() => setShowMyEventsOnly(!showMyEventsOnly)}
             className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
@@ -539,9 +548,31 @@ const App: React.FC = () => {
           >
             {showMyEventsOnly ? '✓ I miei eventi' : 'Tutti gli eventi'}
           </button>
+          <button
+            onClick={() => setView('agenda')}
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
+              view === 'agenda'
+                ? 'bg-red-600 text-white'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+            title="Visualizza agenda di tutti gli eventi"
+          >
+            📋 Agenda
+          </button>
+          <button
+            onClick={() => setView('techno')}
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
+              view === 'techno'
+                ? 'bg-red-600 text-white'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+            title="Visualizza eventi techno"
+          >
+            🎵 Techno Events
+          </button>
         </div>
 
-        <UpcomingEvents events={filteredEvents} onEventClick={openModalForExistingEvent} />
+        {view !== 'agenda' && view !== 'techno' && <UpcomingEvents events={filteredEvents} onEventClick={openModalForExistingEvent} />}
         <div className="flex-1 flex flex-col min-h-[600px]">
           {renderView()}
         </div>
