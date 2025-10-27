@@ -11,7 +11,6 @@ import UpcomingEvents from './components/UpcomingEvents';
 import BottomNavBar from './components/BottomNavBar';
 import ProfileModal from './components/ProfileModal';
 import NotificationsModal from './components/NotificationsModal';
-import TechnoEventsAgenda from './components/TechnoEventsAgenda';
 import { supabase } from './lib/supabaseClient';
 import { useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
@@ -20,7 +19,7 @@ import { requestNotificationPermission, sendPushNotification } from './utils/pus
 import { generateICS, downloadICS } from './utils/icsGenerator';
 import { searchEvents } from './utils/searchUtils';
 
-type View = 'month' | 'week' | 'day' | 'agenda' | 'techno';
+type View = 'month' | 'week' | 'day';
 
 const App: React.FC = () => {
   const { session, user } = useAuth();
@@ -510,21 +509,10 @@ const App: React.FC = () => {
             events={getEventsForDay(currentDate)}
             onEventClick={openModalForExistingEvent}
           />;
-      case 'agenda':
-        return <AgendaView
-          currentDate={currentDate}
-          events={filteredEvents}
-          onEventClick={openModalForExistingEvent}
-        />;
-      case 'techno':
-        return <TechnoEventsAgenda />;
       default:
         return null;
     }
   };
-
-  // Show my events filter only for calendar views (not techno/agenda)
-  const showMyEventsFilter = view !== 'techno' && view !== 'agenda';
 
   return (
     <div className="flex flex-col h-screen font-sans text-slate-200 bg-[#141414]">
@@ -538,24 +526,22 @@ const App: React.FC = () => {
         onSearchChange={setSearchTerm}
       />
       <main className="flex-1 flex flex-col overflow-y-auto p-4 md:p-6 space-y-6 pb-24">
-        {/* My Events Toggle - Only for calendar views */}
-        {showMyEventsFilter && (
-          <div className="flex justify-center">
-            <button
-              onClick={() => setShowMyEventsOnly(!showMyEventsOnly)}
-              className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
-                showMyEventsOnly
-                  ? 'bg-green-600 text-white'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-              }`}
-              title={showMyEventsOnly ? 'Mostra tutti gli eventi' : 'Mostra solo i miei eventi'}
-            >
-              {showMyEventsOnly ? '✓ I miei eventi' : 'Tutti gli eventi'}
-            </button>
-          </div>
-        )}
+        {/* My Events Toggle */}
+        <div className="flex justify-center">
+          <button
+            onClick={() => setShowMyEventsOnly(!showMyEventsOnly)}
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
+              showMyEventsOnly
+                ? 'bg-green-600 text-white'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+            title={showMyEventsOnly ? 'Mostra tutti gli eventi' : 'Mostra solo i miei eventi'}
+          >
+            {showMyEventsOnly ? '✓ I miei eventi' : 'Tutti gli eventi'}
+          </button>
+        </div>
 
-        {view !== 'techno' && <UpcomingEvents events={filteredEvents} onEventClick={openModalForExistingEvent} />}
+        <UpcomingEvents events={filteredEvents} onEventClick={openModalForExistingEvent} />
         <div className="flex-1 flex flex-col min-h-[600px]">
           {renderView()}
         </div>
