@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getTechnoEvents, TechnoEvent as TechnoEventType } from '../lib/technoScraper';
+import { getTechnoEvents, initializeTechnoEventsDatabase, TechnoEvent as TechnoEventType } from '../lib/technoScraper';
 import TechnoEventDetails from './TechnoEventDetails';
 import { LocationMarkerIcon } from './Icons';
 
@@ -14,6 +14,7 @@ const TechnoEventsAgenda: React.FC<TechnoEventsAgendaProps> = ({ onEventClick })
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedCity, setSelectedCity] = useState<string>('all');
   const [error, setError] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState(false);
 
   const cities = ['all', 'Turin', 'Bologna', 'Amsterdam', 'Berlin', 'Europe'];
 
@@ -41,6 +42,23 @@ const TechnoEventsAgenda: React.FC<TechnoEventsAgendaProps> = ({ onEventClick })
     } catch (err) {
       console.error('Error loading events:', err);
       setError('Errore nel caricamento degli eventi');
+    }
+  };
+
+  const handleInitializeDatabase = async () => {
+    setIsInitializing(true);
+    setError(null);
+    try {
+      console.log('Starting database initialization with 21 festivals...');
+      const count = await initializeTechnoEventsDatabase();
+      console.log(`✅ Initialized ${count} events`);
+      // Reload events after initialization
+      await loadEvents();
+    } catch (err) {
+      console.error('Error initializing database:', err);
+      setError('Errore nell\'inizializzazione del database. Controlla la console per dettagli.');
+    } finally {
+      setIsInitializing(false);
     }
   };
 
@@ -72,6 +90,30 @@ const TechnoEventsAgenda: React.FC<TechnoEventsAgendaProps> = ({ onEventClick })
         {error && (
           <div className="bg-red-900/30 border border-red-700 text-red-200 px-3 py-2 rounded mb-4">
             {error}
+          </div>
+        )}
+
+        {/* Initialize Database Button - shown when no events */}
+        {filteredEvents.length === 0 && (
+          <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4 mb-4">
+            <p className="text-slate-300 text-sm mb-3">
+              Nessun evento trovato. Vuoi popolare il database con 21 festival europei reali?
+            </p>
+            <button
+              onClick={handleInitializeDatabase}
+              disabled={isInitializing}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2 ${
+                isInitializing
+                  ? 'bg-slate-600 text-slate-300 cursor-not-allowed'
+                  : 'bg-red-600 text-white hover:bg-red-700'
+              }`}
+            >
+              <span className={isInitializing ? 'animate-spin' : ''}>✨</span>
+              {isInitializing ? 'Inizializzazione...' : 'Carica 21 Festival'}
+            </button>
+            <p className="text-slate-500 text-xs mt-2">
+              Include: ADE, TIME WARP, AWAKENINGS, KAPPA, Q35 Warehouse Turin, e altri
+            </p>
           </div>
         )}
 
