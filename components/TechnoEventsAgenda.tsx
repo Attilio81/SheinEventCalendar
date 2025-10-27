@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getTechnoEvents, scrapeAndSaveTechnoEvents, TechnoEvent as TechnoEventType } from '../lib/technoScraper';
+import { getTechnoEvents, TechnoEvent as TechnoEventType } from '../lib/technoScraper';
 import TechnoEventDetails from './TechnoEventDetails';
 import { LocationMarkerIcon } from './Icons';
 
@@ -12,7 +12,6 @@ const TechnoEventsAgenda: React.FC<TechnoEventsAgendaProps> = ({ onEventClick })
   const [filteredEvents, setFilteredEvents] = useState<TechnoEventType[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<TechnoEventType | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedCity, setSelectedCity] = useState<string>('all');
   const [error, setError] = useState<string | null>(null);
 
@@ -45,28 +44,6 @@ const TechnoEventsAgenda: React.FC<TechnoEventsAgendaProps> = ({ onEventClick })
     }
   };
 
-  const handleRefresh = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      // Try to save to Supabase, but don't fail if RLS blocks it
-      await scrapeAndSaveTechnoEvents();
-      // Always try to load from Supabase first, fallback to memory if fails
-      const data = await getTechnoEvents();
-      if (data && data.length > 0) {
-        setEvents(data);
-      } else {
-        // If no data in DB, use mock data directly
-        setError(null);
-      }
-    } catch (err) {
-      console.error('Error refreshing events:', err);
-      // Don't show error for RLS issues - still show the events
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleEventClick = (event: TechnoEventType) => {
     setSelectedEvent(event);
     setIsDetailsModalOpen(true);
@@ -85,25 +62,11 @@ const TechnoEventsAgenda: React.FC<TechnoEventsAgendaProps> = ({ onEventClick })
 
   return (
     <div className="bg-transparent flex flex-col h-full">
-      {/* Header con Refresh e Filtri */}
+      {/* Header con Filtri */}
       <div className="bg-slate-800 rounded-lg p-4 mb-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-1">🎵 Techno Events</h2>
-            <p className="text-slate-400 text-sm">Festival e serate techno in giro</p>
-          </div>
-          <button
-            onClick={handleRefresh}
-            disabled={isLoading}
-            className={`px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2 ${
-              isLoading
-                ? 'bg-slate-600 text-slate-300 cursor-not-allowed'
-                : 'bg-red-600 text-white hover:bg-red-700'
-            }`}
-          >
-            <span className={isLoading ? 'animate-spin' : ''}>⟳</span>
-            {isLoading ? 'Caricamento...' : 'Refresh Events'}
-          </button>
+        <div>
+          <h2 className="text-2xl font-bold text-white mb-1">🎵 Techno Events</h2>
+          <p className="text-slate-400 text-sm">Festival e serate techno in giro</p>
         </div>
 
         {error && (
