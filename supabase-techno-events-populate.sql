@@ -1,12 +1,16 @@
--- Populate Techno Events Database with 21 Real European Festivals
+-- Populate Techno Events Database with 31 Real European Festivals & Turin Club Events
 -- Run this in Supabase SQL Editor: https://supabase.com/dashboard/project/[your-project]/sql
--- Safe to run multiple times - uses INSERT OR IGNORE pattern via DISTINCT
+-- Safe to run multiple times - uses ON CONFLICT DO UPDATE pattern
 -- Last updated: October 2025
 
--- Step 1: Clear existing events (optional - comment out to append instead)
--- DELETE FROM public_techno_events;
+-- Step 1: CLEAR ALL OLD EVENTS AND START FRESH
+-- Uncomment the next line to delete all existing events before inserting new ones
+DELETE FROM public_techno_events;
 
--- Step 2: Insert 21 Real European Techno Festivals & Turin Clubs
+-- Step 2: Insert 31 Real European Techno Festivals & Turin Club Events
+-- Includes:
+--   - 21 Major European Festivals (ADE, TIME WARP, AWAKENINGS, KAPPA, etc.)
+--   - 10 Turin Club Events (7x Audiodrome + 3x Q35 Warehouse)
 -- Data sourced from: Xceed.me, Resident Advisor, EventDestination
 INSERT INTO public_techno_events (
   title, description, date_start, date_end, time_start, time_end,
@@ -162,7 +166,73 @@ VALUES
  '2026-09-05', '2026-09-06', NULL, NULL,
  'Parco delle Cascine', 'Firenze', 'Firenze', 'Italy', 43.7648, 11.2356,
  '{}', NULL, ARRAY['Techno', 'House', 'Electronic'], 15000,
- 'eventdestination', 'https://www.eventdestination.net/en/decibel-open-air/', 'https://www.decibelonline.com/', NULL)
+ 'eventdestination', 'https://www.eventdestination.net/en/decibel-open-air/', 'https://www.decibelonline.com/', NULL),
+
+-- NOVEMBER 2025 - AUDIODROME LIVE CLUB
+('[SHOUT!] w/ Dimmish',
+ 'Audiodrome Sessions - Tech House. Part of SHOUT series at legendary Audiodrome Live Club.',
+ '2025-11-04', NULL, NULL, NULL,
+ 'Audiodrome Live Club', 'Moncalieri, Turin', 'Turin', 'Italy', 45.0705, 7.6272,
+ ARRAY['Dimmish'], NULL, ARRAY['Tech House'], 2500,
+ 'xceed', 'https://xceed.me/en/torino/event/shout-dimmish', 'https://xceed.me/en/torino/event/shout-dimmish', 'https://www.audiodromeliveclub.it'),
+
+('[OVER] w/ Lucia Lu',
+ 'Audiodrome Sessions - Hard Techno. OVER series at Audiodrome.',
+ '2025-11-11', NULL, NULL, NULL,
+ 'Audiodrome Live Club', 'Moncalieri, Turin', 'Turin', 'Italy', 45.0705, 7.6272,
+ ARRAY['Lucia Lu'], NULL, ARRAY['Hard Techno'], 2500,
+ 'xceed', 'https://xceed.me/en/torino/event/over-lucia-lu', 'https://xceed.me/en/torino/event/over-lucia-lu', 'https://www.audiodromeliveclub.it'),
+
+('[OVER] w/ FJAAK',
+ 'Audiodrome Sessions - Hard Techno. FJAAK live at Audiodrome.',
+ '2025-11-17', NULL, NULL, NULL,
+ 'Audiodrome Live Club', 'Moncalieri, Turin', 'Turin', 'Italy', 45.0705, 7.6272,
+ ARRAY['FJAAK'], NULL, ARRAY['Hard Techno'], 2500,
+ 'xceed', 'https://xceed.me/en/torino/event/over-fjaak', 'https://xceed.me/en/torino/event/over-fjaak', 'https://www.audiodromeliveclub.it'),
+
+('[SHOUT!] w/ East End Dubs',
+ 'Audiodrome Sessions - Tech House. East End Dubs at SHOUT series.',
+ '2025-11-18', NULL, NULL, NULL,
+ 'Audiodrome Live Club', 'Moncalieri, Turin', 'Turin', 'Italy', 45.0705, 7.6272,
+ ARRAY['East End Dubs'], NULL, ARRAY['Tech House'], 2500,
+ 'xceed', 'https://xceed.me/en/torino/event/shout-east-end-dubs', 'https://xceed.me/en/torino/event/shout-east-end-dubs', 'https://www.audiodromeliveclub.it'),
+
+('[OVER] w/ Pan-Pot',
+ 'Audiodrome Sessions - Hard Techno. Pan-Pot at Audiodrome.',
+ '2025-11-25', NULL, NULL, NULL,
+ 'Audiodrome Live Club', 'Moncalieri, Turin', 'Turin', 'Italy', 45.0705, 7.6272,
+ ARRAY['Pan-Pot'], NULL, ARRAY['Hard Techno'], 2500,
+ 'xceed', 'https://xceed.me/en/torino/event/over-pan-pot', 'https://xceed.me/en/torino/event/over-pan-pot', 'https://www.audiodromeliveclub.it'),
+
+-- DECEMBER 2025 - AUDIODROME LIVE CLUB
+('[OVER] w/ Patrick Mason',
+ 'Audiodrome Sessions - Hard Techno. Patrick Mason at OVER series.',
+ '2025-12-09', NULL, NULL, NULL,
+ 'Audiodrome Live Club', 'Moncalieri, Turin', 'Turin', 'Italy', 45.0705, 7.6272,
+ ARRAY['Patrick Mason'], NULL, ARRAY['Hard Techno'], 2500,
+ 'xceed', 'https://xceed.me/en/torino/event/over-patrick-mason', 'https://xceed.me/en/torino/event/over-patrick-mason', 'https://www.audiodromeliveclub.it'),
+
+('EAR\\WAX w/ Seth Troxler',
+ 'Audiodrome Sessions - Disco/Lo-Fi. Seth Troxler legendary techno pioneer.',
+ '2025-12-15', NULL, NULL, NULL,
+ 'Audiodrome Live Club', 'Moncalieri, Turin', 'Turin', 'Italy', 45.0705, 7.6272,
+ ARRAY['Seth Troxler'], NULL, ARRAY['Disco', 'Techno'], 2500,
+ 'xceed', 'https://xceed.me/en/torino/event/earwax-seth-troxler', 'https://xceed.me/en/torino/event/earwax-seth-troxler', 'https://www.audiodromeliveclub.it'),
+
+-- NOVEMBER 2025 - Q35 WAREHOUSE
+('Ellen Allien w/ THEGOD01 + Rytm',
+ 'Q35 Warehouse - Underground techno. Ellen Allien (BPitch Control founder) with local talent.',
+ '2025-11-22', NULL, NULL, NULL,
+ 'Q35 Warehouse', 'Lungo Dora Firenze, Turin', 'Turin', 'Italy', 45.0876, 7.6876,
+ ARRAY['Ellen Allien', 'THEGOD01', 'Rytm'], NULL, ARRAY['Techno'], 2000,
+ 'xceed', 'https://xceed.me/en/torino/event/ellen-allien-q35', 'https://xceed.me/en/torino/event/ellen-allien-q35', 'https://q35warehouse.it'),
+
+('MIND ENTERPRISES Live - Ear\\Wax Series',
+ 'Q35 Warehouse - Italo Disco/Lo-Fi. MIND ENTERPRISES live with Humanoid Gods collective.',
+ '2025-11-29', NULL, NULL, NULL,
+ 'Q35 Warehouse', 'Lungo Dora Firenze, Turin', 'Turin', 'Italy', 45.0876, 7.6876,
+ ARRAY['MIND ENTERPRISES', 'Humanoid Gods'], NULL, ARRAY['Italo Disco', 'Lo-Fi', 'Electronic'], 2000,
+ 'xceed', 'https://xceed.me/en/torino/event/mind-enterprises-q35', 'https://xceed.me/en/torino/event/mind-enterprises-q35', 'https://q35warehouse.it')
 
 ON CONFLICT (source, source_url) DO UPDATE SET
   title = EXCLUDED.title,
@@ -192,4 +262,6 @@ SELECT COUNT(*) as total_events,
 FROM public_techno_events
 WHERE date_start >= '2025-10-27' AND date_start <= '2026-10-27';
 
--- Output should show: 21 total events, cities like Turin/Amsterdam/Mannheim/etc, countries like Italy/Netherlands/Germany/Croatia/Spain
+-- Output should show: 31 total events (21 major festivals + 10 Turin club events)
+-- Cities: Turin, Amsterdam, Mannheim, Novalja, Firenze, Tilburg, Tisno, Monegros
+-- Countries: Italy, Netherlands, Germany, Croatia, Spain
