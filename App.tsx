@@ -523,38 +523,8 @@ const App: React.FC = () => {
     }
   };
 
-  const ViewSwitcher: React.FC = () => (
-    <div className="flex flex-col sm:flex-row justify-center items-center mb-4 gap-2">
-      <div className="flex items-center bg-slate-800 rounded-lg p-1 space-x-1 flex-wrap justify-center">
-        {(['month', 'week', 'day', 'agenda', 'techno'] as const).map(viewName => (
-          <button
-            key={viewName}
-            onClick={() => setView(viewName)}
-            className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${
-              view === viewName
-                ? 'bg-red-600 text-white'
-                : 'text-slate-300 hover:bg-slate-700'
-            }`}
-          >
-            {viewName === 'month' ? 'Mese' : viewName === 'week' ? 'Settimana' : viewName === 'day' ? 'Giorno' : viewName === 'agenda' ? 'Agenda' : '🎵 Techno'}
-          </button>
-        ))}
-      </div>
-      {view !== 'techno' && (
-        <button
-          onClick={() => setShowMyEventsOnly(!showMyEventsOnly)}
-          className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
-            showMyEventsOnly
-              ? 'bg-green-600 text-white'
-              : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-          }`}
-          title={showMyEventsOnly ? 'Mostra tutti gli eventi' : 'Mostra solo i miei eventi'}
-        >
-          {showMyEventsOnly ? '✓ I miei eventi' : 'Tutti gli eventi'}
-        </button>
-      )}
-    </div>
-  );
+  // Show my events filter only for calendar views (not techno/agenda)
+  const showMyEventsFilter = view !== 'techno' && view !== 'agenda';
 
   return (
     <div className="flex flex-col h-screen font-sans text-slate-200 bg-[#141414]">
@@ -568,8 +538,24 @@ const App: React.FC = () => {
         onSearchChange={setSearchTerm}
       />
       <main className="flex-1 flex flex-col overflow-y-auto p-4 md:p-6 space-y-6 pb-24">
-        <UpcomingEvents events={filteredEvents} onEventClick={openModalForExistingEvent} />
-        <ViewSwitcher />
+        {/* My Events Toggle - Only for calendar views */}
+        {showMyEventsFilter && (
+          <div className="flex justify-center">
+            <button
+              onClick={() => setShowMyEventsOnly(!showMyEventsOnly)}
+              className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
+                showMyEventsOnly
+                  ? 'bg-green-600 text-white'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+              }`}
+              title={showMyEventsOnly ? 'Mostra tutti gli eventi' : 'Mostra solo i miei eventi'}
+            >
+              {showMyEventsOnly ? '✓ I miei eventi' : 'Tutti gli eventi'}
+            </button>
+          </div>
+        )}
+
+        {view !== 'techno' && <UpcomingEvents events={filteredEvents} onEventClick={openModalForExistingEvent} />}
         <div className="flex-1 flex flex-col min-h-[600px]">
           {renderView()}
         </div>
@@ -627,6 +613,7 @@ const App: React.FC = () => {
         onNext={handleNext}
         onToday={handleToday}
         onAddEvent={() => openModalForNewEvent(formatDateToYYYYMMDD(new Date()))}
+        onViewChange={setView}
       />
     </div>
   );
