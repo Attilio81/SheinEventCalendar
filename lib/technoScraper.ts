@@ -751,3 +751,62 @@ export async function clearOldTechnoEvents(): Promise<number> {
     return 0;
   }
 }
+
+/**
+ * Initialize Supabase with comprehensive European techno festival calendar (21 events)
+ * This should be called ONCE to populate the database with real festival data
+ * Safe to call multiple times - uses upsert so won't duplicate
+ */
+export async function initializeTechnoEventsDatabase(): Promise<number> {
+  try {
+    console.log('🎵 Initializing Techno Events Database with 21 real festivals...');
+
+    // Prepare all mock events for insertion
+    const eventsToInsert = MOCK_TECHNO_EVENTS.map(event => ({
+      title: event.title,
+      description: event.description,
+      date_start: event.date_start,
+      date_end: event.date_end,
+      time_start: event.time_start,
+      time_end: event.time_end,
+      venue: event.venue,
+      location: event.location,
+      city: event.city,
+      country: event.country,
+      latitude: event.latitude,
+      longitude: event.longitude,
+      lineup: event.lineup || [],
+      image_url: event.image_url,
+      genres: event.genres || ['Techno'],
+      capacity: event.capacity,
+      source: event.source,
+      source_url: event.source_url,
+      ticket_url: event.ticket_url,
+      official_site: event.official_site
+    }));
+
+    console.log(`📤 Upserting ${eventsToInsert.length} festival events to Supabase...`);
+
+    // Use upsert to avoid duplicates - idempotent operation
+    const { data, error } = await supabase
+      .from('public_techno_events')
+      .upsert(eventsToInsert, {
+        onConflict: 'source,source_url'
+      });
+
+    if (error) {
+      console.error('❌ Error initializing database:', error);
+      console.log('💡 Tip: Make sure RLS policies allow INSERT/UPDATE for authenticated users');
+      throw error;
+    }
+
+    console.log(`✅ Successfully initialized database with ${eventsToInsert.length} techno events!`);
+    console.log('📊 Events available: ADE, TIME WARP, AWAKENINGS, KAPPA, Dekmantel, Sonus, Barrakud, Q35 Warehouse Turin clubs, and more');
+
+    return eventsToInsert.length;
+
+  } catch (error) {
+    console.error('❌ Error in initializeTechnoEventsDatabase:', error);
+    throw error;
+  }
+}
