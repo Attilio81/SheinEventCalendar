@@ -16,7 +16,10 @@ const TechnoEventsAgenda: React.FC<TechnoEventsAgendaProps> = ({ onEventClick })
   const [error, setError] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(false);
 
-  const cities = ['all', 'Turin', 'Bologna', 'Amsterdam', 'Berlin', 'Europe'];
+  // Dynamically get unique cities from events
+  const cities = ['all', ...Array.from(
+    new Set(events.map(e => e.city).filter(Boolean))
+  ).sort()] as string[];
 
   // Load events from Supabase
   useEffect(() => {
@@ -93,11 +96,11 @@ const TechnoEventsAgenda: React.FC<TechnoEventsAgendaProps> = ({ onEventClick })
           </div>
         )}
 
-        {/* Initialize Database Button - shown when no events */}
-        {filteredEvents.length === 0 && (
+        {/* Initialize Database Button - shown only when database is completely empty */}
+        {events.length === 0 && (
           <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4 mb-4">
             <p className="text-slate-300 text-sm mb-3">
-              Nessun evento trovato. Vuoi popolare il database con 21 festival europei reali?
+              Nessun evento trovato. Vuoi popolare il database con 31 festival europei e club Turin?
             </p>
             <button
               onClick={handleInitializeDatabase}
@@ -109,10 +112,10 @@ const TechnoEventsAgenda: React.FC<TechnoEventsAgendaProps> = ({ onEventClick })
               }`}
             >
               <span className={isInitializing ? 'animate-spin' : ''}>✨</span>
-              {isInitializing ? 'Inizializzazione...' : 'Carica 21 Festival'}
+              {isInitializing ? 'Inizializzazione...' : 'Carica 31 Festival'}
             </button>
             <p className="text-slate-500 text-xs mt-2">
-              Include: ADE, TIME WARP, AWAKENINGS, KAPPA, Q35 Warehouse Turin, e altri
+              Include: ADE, TIME WARP, AWAKENINGS, KAPPA, Audiodrome, Q35 Warehouse, e altri
             </p>
           </div>
         )}
