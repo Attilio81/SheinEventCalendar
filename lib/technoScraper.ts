@@ -493,21 +493,53 @@ function deduplicateEvents(events: TechnoEvent[]): TechnoEvent[] {
 }
 
 /**
- * Main function to load mock techno events (CORS prevents real scraping from browser)
- * In production, this should call a backend API that does the scraping
+ * Main function to refresh techno events
+ * - Deletes ALL old events from database
+ * - Loads fresh mock data for next 12 months from TODAY
+ * - Saves to Supabase so all users see the same events
  */
 export async function scrapeAndSaveTechnoEvents(): Promise<number> {
   try {
-    console.log('🎵 Loading techno events...');
+    console.log('🎵 Starting techno events refresh...');
 
-    // Use mock data directly (web scraping blocked by CORS from browser)
-    // Note: Real scraping should be done in a backend API to bypass CORS
-    let allEvents = [...MOCK_TECHNO_EVENTS];
+    // Step 1: Delete ALL existing events from Supabase
+    console.log('🗑️ Clearing old events...');
+    const { error: deleteError } = await supabase
+      .from('public_techno_events')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all (this condition is always true)
 
-    console.log(`📊 Loaded ${allEvents.length} techno events from mock data`);
+    if (deleteError) {
+      console.error('⚠️ Warning: Could not delete old events:', deleteError);
+      // Continue anyway - we'll try to insert new ones
+    } else {
+      console.log('✅ Cleared old events');
+    }
 
-    // Prepare data for Supabase insertion
-    const eventsToInsert = allEvents.map(event => ({
+    // Step 2: Filter mock data to next 12 months from TODAY
+    const today = new Date();
+    const tomorrowPlusOneYear = new Date();
+    tomorrowPlusOneYear.setFullYear(tomorrowPlusOneYear.getFullYear() + 1);
+
+    const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
+    const endDateStr = tomorrowPlusOneYear.toISOString().split('T')[0];
+
+    console.log(`📅 Filtering events from ${todayStr} to ${endDateStr}`);
+
+    // Filter events to next 12 months only
+    let filteredEvents = MOCK_TECHNO_EVENTS.filter(event => {
+      return event.date_start >= todayStr && event.date_start <= endDateStr;
+    });
+
+    console.log(`📊 Found ${filteredEvents.length} events for next 12 months`);
+
+    if (filteredEvents.length === 0) {
+      console.warn('⚠️ No events found in the next 12 months');
+      return 0;
+    }
+
+    // Step 3: Prepare data for Supabase insertion
+    const eventsToInsert = filteredEvents.map(event => ({
       title: event.title,
       description: event.description,
       date_start: event.date_start,
@@ -530,20 +562,17 @@ export async function scrapeAndSaveTechnoEvents(): Promise<number> {
       official_site: event.official_site
     }));
 
-    // Insert/Update in Supabase (using upsert to handle duplicates)
-    // Use Supabase service role or anonymous key with proper RLS
+    // Step 4: Insert fresh events to Supabase
+    console.log(`📤 Inserting ${eventsToInsert.length} fresh events...`);
     const { data, error } = await supabase
       .from('public_techno_events')
-      .upsert(eventsToInsert, {
-        onConflict: 'source,source_url'
-      });
+      .insert(eventsToInsert);
 
     if (error) {
       console.error('❌ Error saving events to Supabase:', error);
-      // Don't throw - let getTechnoEvents load from cache instead
-      console.log('💡 Tip: Check RLS policies on public_techno_events table');
+      console.log('💡 Tip: Make sure RLS policies allow INSERT for authenticated users');
     } else {
-      console.log(`✅ Successfully saved ${eventsToInsert.length} techno events`);
+      console.log(`✅ Successfully refreshed ${eventsToInsert.length} techno events`);
     }
 
     return eventsToInsert.length;
@@ -557,6 +586,7 @@ export async function scrapeAndSaveTechnoEvents(): Promise<number> {
 
 /**
  * Fetch all techno events from Supabase, fallback to mock data if empty
+ * Always filters to next 12 months from TODAY
  */
 export async function getTechnoEvents(filters?: {
   city?: string;
@@ -564,10 +594,20 @@ export async function getTechnoEvents(filters?: {
   fromDate?: string;
 }): Promise<TechnoEvent[]> {
   try {
+    // Calculate 12-month window from today
+    const today = new Date();
+    const oneYearFromNow = new Date();
+    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+
+    const todayStr = today.toISOString().split('T')[0];
+    const endDateStr = oneYearFromNow.toISOString().split('T')[0];
+
     let query = supabase
       .from('public_techno_events')
       .select('*')
-      .order('date_start', { ascending: true });
+      .order('date_start', { ascending: true })
+      .gte('date_start', todayStr)
+      .lte('date_start', endDateStr);
 
     if (filters?.city) {
       query = query.eq('city', filters.city);
@@ -585,15 +625,17 @@ export async function getTechnoEvents(filters?: {
 
     // If Supabase returns data, use it
     if (data && data.length > 0) {
-      console.log(`✅ Loaded ${data.length} events from Supabase`);
+      console.log(`✅ Loaded ${data.length} events from Supabase (next 12 months)`);
       return (data as unknown as TechnoEvent[]);
     }
 
     // Fallback to mock data if Supabase is empty or has error
-    console.log('📦 Supabase empty or error, using mock data');
-    let mockEvents = [...MOCK_TECHNO_EVENTS];
+    console.log('📦 Supabase empty, using mock data for next 12 months');
+    let mockEvents = MOCK_TECHNO_EVENTS.filter(e =>
+      e.date_start >= todayStr && e.date_start <= endDateStr
+    );
 
-    // Apply filters to mock data
+    // Apply additional filters to mock data
     if (filters?.city) {
       mockEvents = mockEvents.filter(e => e.city.toLowerCase() === filters.city?.toLowerCase());
     }
@@ -609,9 +651,18 @@ export async function getTechnoEvents(filters?: {
     return mockEvents;
   } catch (error) {
     console.error('Error in getTechnoEvents:', error);
-    // Always return mock data as fallback
+    // Always return mock data as fallback for next 12 months
     console.log('⚠️ Error fetching, returning mock data');
-    return MOCK_TECHNO_EVENTS;
+    const today = new Date();
+    const oneYearFromNow = new Date();
+    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+
+    const todayStr = today.toISOString().split('T')[0];
+    const endDateStr = oneYearFromNow.toISOString().split('T')[0];
+
+    return MOCK_TECHNO_EVENTS.filter(e =>
+      e.date_start >= todayStr && e.date_start <= endDateStr
+    );
   }
 }
 
