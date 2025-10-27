@@ -422,46 +422,25 @@ export async function getTechnoEvents(filters?: {
 
     const { data, error } = await query;
 
-    // If Supabase returns data, use it
+    if (error) {
+      console.error('Error fetching from Supabase:', error);
+      return [];
+    }
+
+    // Return only real events from Supabase (no mock fallback)
     if (data && data.length > 0) {
       console.log(`✅ Loaded ${data.length} events from Supabase (next 12 months)`);
       return (data as unknown as TechnoEvent[]);
     }
 
-    // Fallback to mock data if Supabase is empty or has error
-    console.log('📦 Supabase empty, using mock data for next 12 months');
-    let mockEvents = MOCK_TECHNO_EVENTS.filter(e =>
-      e.date_start >= todayStr && e.date_start <= endDateStr
-    );
-
-    // Apply additional filters to mock data
-    if (filters?.city) {
-      mockEvents = mockEvents.filter(e => e.city.toLowerCase() === filters.city?.toLowerCase());
-    }
-
-    if (filters?.country) {
-      mockEvents = mockEvents.filter(e => e.country.toLowerCase() === filters.country?.toLowerCase());
-    }
-
-    if (filters?.fromDate) {
-      mockEvents = mockEvents.filter(e => e.date_start >= filters.fromDate!);
-    }
-
-    return mockEvents;
+    // No events in Supabase - return empty array (no mock fallback)
+    console.log('📭 No events in Supabase for next 12 months');
+    return [];
   } catch (error) {
     console.error('Error in getTechnoEvents:', error);
-    // Always return mock data as fallback for next 12 months
-    console.log('⚠️ Error fetching, returning mock data');
-    const today = new Date();
-    const oneYearFromNow = new Date();
-    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-
-    const todayStr = today.toISOString().split('T')[0];
-    const endDateStr = oneYearFromNow.toISOString().split('T')[0];
-
-    return MOCK_TECHNO_EVENTS.filter(e =>
-      e.date_start >= todayStr && e.date_start <= endDateStr
-    );
+    // No fallback to mock - return empty array on error
+    console.log('⚠️ Error fetching events, returning empty array');
+    return [];
   }
 }
 
