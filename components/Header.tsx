@@ -27,7 +27,12 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="flex-shrink-0 bg-[#141414] border-b border-slate-800 p-4 flex items-center justify-between gap-4 flex-wrap">
-      <div className="flex items-center">
+      <div className="flex items-center gap-3">
+        <img
+          src="/favicon.svg"
+          alt="Shein Logo"
+          className="w-8 h-8 md:w-10 md:h-10"
+        />
         <h1 className="text-lg md:text-2xl font-bold text-white uppercase tracking-wider">
           <span className="text-red-600">Shein</span> <span className="hidden sm:inline">Event Calendar</span>
         </h1>
